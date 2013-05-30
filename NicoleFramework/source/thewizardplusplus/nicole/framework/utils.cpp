@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cstdlib>
 
-using namespace thewizardplusplus::nicole_framework;
+using namespace thewizardplusplus::nicole::framework;
 
 extern "C" float ProcessApplicationPath(const char* path) {
 	std::string application_path = path;

@@ -2,7 +2,8 @@
 #define SYSTEM_H
 
 namespace thewizardplusplus {
-namespace nicole_framework {
+namespace nicole {
+namespace framework {
 
 extern "C" {
 
@@ -12,6 +13,7 @@ void Exit(void);
 
 }
 
+}
 }
 }
 #endif

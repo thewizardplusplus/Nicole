@@ -5,7 +5,8 @@
 #include <sstream>
 
 namespace thewizardplusplus {
-namespace nicole_framework {
+namespace nicole {
+namespace framework {
 
 template<typename Type>
 std::string ConvertToString(Type value) {
@@ -19,6 +20,7 @@ std::string ConvertToString(Type value) {
 extern "C" float ProcessApplicationPath(const char* path);
 extern "C" void ProcessError(const std::string& description);
 
+}
 }
 }
 #endif

@@ -5,7 +5,8 @@
 #include <fstream>
 
 namespace thewizardplusplus {
-namespace nicole_framework {
+namespace nicole {
+namespace framework {
 
 typedef std::list<std::fstream*> FileList;
 class FileOpenMode {
@@ -31,6 +32,7 @@ std::fstream* FileGetById(float file_id);
 
 }
 
+}
 }
 }
 #endif

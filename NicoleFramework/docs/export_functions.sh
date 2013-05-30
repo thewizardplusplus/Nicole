@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SOURCES_PATH="./../source/thewizardplusplus/nicole_framework/"
+SOURCES_PATH="./../source/thewizardplusplus/nicole/framework/"
 
 parseExportedFunction() {
 	files=$(find "$SOURCES_PATH" -name *.cpp)
@@ -41,38 +41,16 @@ generateCodeForNicoleCompiler() {
 	processExportedFunction "$exported_function" "framework"
 }
 
-if [ ! -z "$1" ]
+if [[ ! -z "$1" && "$1" != "-f" && "$1" != "--framework" ]]
 then
-	if [ "$1" != "-f" ]
-	then
-		if [ "$1" != "--framework" ]
-		then
-			SOURCES_PATH="$1"
-		fi
-	fi
+	SOURCES_PATH="$1"
 fi
 
 echo "List of functions for Nicole-program:"
 exported_function=$(parseExportedFunction)
 processExportedFunction "$exported_function"
 
-if [ "$1" = "-f" ]
+if [[ "$1" = "-f" || "$1" = "--framework" || "$2" = "-f" || "$2" = "--framework" ]]
 then
 	generateCodeForNicoleCompiler
-	exit 0
-fi
-if [ "$1" = "--framework" ]
-then
-	generateCodeForNicoleCompiler
-	exit 0
-fi
-if [ "$2" = "-f" ]
-then
-	generateCodeForNicoleCompiler
-	exit 0
-fi
-if [ "$2" = "--framework" ]
-then
-	generateCodeForNicoleCompiler
-	exit 0
 fi

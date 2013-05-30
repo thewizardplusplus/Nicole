@@ -3,7 +3,7 @@ CONFIG += console
 CONFIG += warn_on
 CONFIG -= qt
 SOURCES += \
-	source/thewizardplusplus/nicole_compiler/main.cpp
+	source/thewizardplusplus/nicole/compiler/main.cpp
 OTHER_FILES += \
 	docs/grammar.txt \
 	docs/examples/pi.ni \

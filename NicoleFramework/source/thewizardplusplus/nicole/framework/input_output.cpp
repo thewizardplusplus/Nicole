@@ -3,7 +3,7 @@
 #include "utils.h"
 #include <iostream>
 
-using namespace thewizardplusplus::nicole_framework;
+using namespace thewizardplusplus::nicole::framework;
 
 static const size_t FILE_READ_ALL_BUFFER_SIZE = 1024;
 

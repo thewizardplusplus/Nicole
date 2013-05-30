@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <ctime>
 
+using namespace thewizardplusplus::nicole::framework;
+
 static bool initialize_prmg = false;
 
 extern "C" float NumberAdd(float number2, float number1) {

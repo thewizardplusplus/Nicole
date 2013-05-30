@@ -7,6 +7,8 @@
 #endif
 #include <cstdlib>
 
+using namespace thewizardplusplus::nicole::framework;
+
 #ifdef OS_LINUX
 static timeval       start_time = {0};
 #elif defined(OS_WINDOWS)

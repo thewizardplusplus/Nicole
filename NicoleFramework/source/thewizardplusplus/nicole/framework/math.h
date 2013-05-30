@@ -2,7 +2,8 @@
 #define MATH_H
 
 namespace thewizardplusplus {
-namespace nicole_framework {
+namespace nicole {
+namespace framework {
 
 extern "C" {
 
@@ -34,6 +35,7 @@ float MathAngle(float y, float x);
 
 }
 
+}
 }
 }
 #endif

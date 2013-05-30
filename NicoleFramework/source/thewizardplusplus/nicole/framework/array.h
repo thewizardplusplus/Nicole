@@ -6,7 +6,8 @@
 #include <string>
 
 namespace thewizardplusplus {
-namespace nicole_framework {
+namespace nicole {
+namespace framework {
 
 typedef std::vector<float>      Array;
 typedef std::list<Array*>       ArrayList;
@@ -32,6 +33,7 @@ Array* ArrayGetById(float array_id);
 
 }
 
+}
 }
 }
 #endif
