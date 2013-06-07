@@ -2,7 +2,7 @@ note 10 PRINT CHR$(205.5+RND(1));: GOTO 10
 
 string SYMBOL1 = "/"
 string SYMBOL2 = "\\"
-let    DELAY =   10
+let    DELAY =   10000
 
 TimerStart()
 label loop
@@ -15,7 +15,7 @@ label loop
 	Show(SYMBOL1)
 
 	label delay_loop
-	if TimerGetElapsedTime() < DELAY then
+		if TimerGetElapsedTimeInUs() < DELAY then
 		go to delay_loop
 	TimerStart()
 label continue_loop

@@ -669,6 +669,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	byte_code_module.functions["FileOpen"] =                                2;
 	byte_code_module.functions["FileRead"] =                                2;
 	byte_code_module.functions["FileReadAll"] =                             1;
+	byte_code_module.functions["GetOs"] =                                   0;
 	byte_code_module.functions["MathAngle"] =                               2;
 	byte_code_module.functions["MathArccos"] =                              1;
 	byte_code_module.functions["MathArcsin"] =                              1;
@@ -694,7 +695,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	byte_code_module.functions["NumberNot"] =                               1;
 	byte_code_module.functions["NumberOr"] =                                2;
 	byte_code_module.functions["NumberSub"] =                               2;
-	byte_code_module.functions["TimerGetElapsedTime"] =                     0;
+	byte_code_module.functions["TimerGetElapsedTimeInUs"] =                 0;
 	byte_code_module.procedures["ArrayClearMemoryAfterConvertsToStrings"] = 0;
 	byte_code_module.procedures["ArrayDelete"] =                            1;
 	byte_code_module.procedures["ArrayDeleteAll"] =                         0;
@@ -720,6 +721,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	byte_code_module.functions["_FileOpen"] =                                2;
 	byte_code_module.functions["_FileRead"] =                                2;
 	byte_code_module.functions["_FileReadAll"] =                             1;
+	byte_code_module.functions["_GetOs"] =                                   0;
 	byte_code_module.functions["_MathAngle"] =                               2;
 	byte_code_module.functions["_MathArccos"] =                              1;
 	byte_code_module.functions["_MathArcsin"] =                              1;
@@ -745,7 +747,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	byte_code_module.functions["_NumberNot"] =                               1;
 	byte_code_module.functions["_NumberOr"] =                                2;
 	byte_code_module.functions["_NumberSub"] =                               2;
-	byte_code_module.functions["_TimerGetElapsedTime"] =                     0;
+	byte_code_module.functions["_TimerGetElapsedTimeInUs"] =                 0;
 	byte_code_module.procedures["_ArrayClearMemoryAfterConvertsToStrings"] = 0;
 	byte_code_module.procedures["_ArrayDelete"] =                            1;
 	byte_code_module.procedures["_ArrayDeleteAll"] =                         0;
@@ -1321,8 +1323,15 @@ int main(int number_of_arguments, char** arguments) {
 	inbuild_variables["FILE_OPEN_MODE_READ"] =    0.0f;
 	inbuild_variables["FILE_OPEN_MODE_APPEND"] =  1.0f;
 	inbuild_variables["FILE_OPEN_MODE_REWRITE"] = 2.0f;
+	inbuild_variables["OS_LINUX"] =               1.0f;
+	inbuild_variables["OS_WINDOWS"] =             0.0f;
 	InbuildStringConstantMap inbuild_string_constants;
 	inbuild_string_constants["NEW_LINE"] = "\"\\n\"";
+	#ifdef OS_LINUX
+	inbuild_string_constants["PATH_SEPARATOR"] = "\"/\"";
+	#elif defined(OS_WINDOWS)
+    inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
+	#endif
 	ByteCodeModule byte_code_module = Compile(code_lines, inbuild_variables,
 		inbuild_string_constants);
 	if (debug_output) {

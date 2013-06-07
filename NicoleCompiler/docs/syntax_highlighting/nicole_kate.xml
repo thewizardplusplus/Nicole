@@ -28,6 +28,7 @@
 			<item> FileOpen </item>
 			<item> FileRead </item>
 			<item> FileReadAll </item>
+			<item> GetOs </item>
 			<item> MathAngle </item>
 			<item> MathArccos </item>
 			<item> MathArcsin </item>
@@ -53,7 +54,7 @@
 			<item> NumberNot </item>
 			<item> NumberOr </item>
 			<item> NumberSub </item>
-			<item> TimerGetElapsedTime </item>
+			<item> TimerGetElapsedTimeInUs </item>
 			<item> ToString </item>
 			<item> ArrayClearMemoryAfterConvertsToStrings </item>
 			<item> ArrayDelete </item>
@@ -78,8 +79,11 @@
 			<item> FILE_OPEN_MODE_READ </item>
 			<item> FILE_OPEN_MODE_APPEND </item>
 			<item> FILE_OPEN_MODE_REWRITE </item>
+			<item> OS_LINUX </item>
+			<item> OS_WINDOWS </item>
 			<item> APPLICATION_PATH </item>
 			<item> NEW_LINE </item>
+			<item> PATH_SEPARATOR </item>
 		</list>
 		<contexts>
 			<context

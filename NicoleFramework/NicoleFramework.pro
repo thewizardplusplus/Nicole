@@ -20,3 +20,6 @@ QMAKE_CXXFLAGS += -std=c++98 -pedantic -Wall -W -O3 -m32
 win32 {
 	QMAKE_CXXFLAGS += -U__STRICT_ANSI__
 }
+
+OTHER_FILES += \
+    docs/export_functions.sh
