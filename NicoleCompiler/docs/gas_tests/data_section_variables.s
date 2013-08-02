@@ -25,13 +25,13 @@ main:
 	push variable2
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call _NumberAdd
+	call NumberAdd
 	addl $8, %esp
 	subl $4, %esp
 	fstps (%esp)
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call ToString
+	call ArrayCreateFromNumber
 	addl $4, %esp
 	subl $4, %esp
 	fstps (%esp)

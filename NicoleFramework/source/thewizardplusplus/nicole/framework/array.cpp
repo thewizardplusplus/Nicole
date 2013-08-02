@@ -25,10 +25,8 @@ extern "C" float ArrayCreateFromString(const char* string) {
 }
 
 extern "C" float ArrayCreateFromNumber(float number) {
-	std::ostringstream out;
-	out << number;
-
-	float array_id = ArrayCreateFromString(out.str().c_str());
+	std::string string = ConvertToString(number);
+	float array_id = ArrayCreateFromString(string.c_str());
 	return array_id;
 }
 
@@ -42,6 +40,17 @@ extern "C" const char* ArrayConvertToString(float array_id) {
 	}
 
 	return string->c_str();
+}
+
+extern "C" float ArrayConvertToNumber(float array_id) {
+	std::string string = ArrayConvertToString(array_id);
+	ArrayClearMemoryAfterConvertsToStrings();
+
+	std::istringstream in(string);
+	float number = 0.0f;
+	in >> number;
+
+	return number;
 }
 
 extern "C" void ArrayDelete(float array_id) {

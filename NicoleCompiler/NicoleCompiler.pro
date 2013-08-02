@@ -11,7 +11,8 @@ OTHER_FILES += \
 	docs/examples/maze.ni \
 	docs/syntax_highlighting/nicole_kate.xml \
 	docs/syntax_highlighting/nicole_notepadpp.xml \
-	docs/examples/test.ni
+	docs/examples/test.ni \
+	docs/examples/quine.ni
 QMAKE_CXXFLAGS += -std=c++98 -pedantic -Wall -W -O3
 win32 {
 	QMAKE_CXXFLAGS += -U__STRICT_ANSI__

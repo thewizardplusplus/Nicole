@@ -16,10 +16,9 @@ SOURCES += \
 	source/thewizardplusplus/nicole/framework/system.cpp \
 	source/thewizardplusplus/nicole/framework/utils.cpp \
 	source/thewizardplusplus/nicole/framework/input_output.cpp
+OTHER_FILES += \
+	docs/export_functions.sh
 QMAKE_CXXFLAGS += -std=c++98 -pedantic -Wall -W -O3 -m32
 win32 {
 	QMAKE_CXXFLAGS += -U__STRICT_ANSI__
 }
-
-OTHER_FILES += \
-    docs/export_functions.sh

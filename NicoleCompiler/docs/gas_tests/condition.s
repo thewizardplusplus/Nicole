@@ -14,7 +14,7 @@ main:
 	push $CONSTANT_STRING0
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call _ArrayCreateFromString
+	call ArrayCreateFromString
 	add $4, %esp
 	subl $4, %esp
 	fstps (%esp)
@@ -26,7 +26,7 @@ main:
 	push $CONSTANT_STRING1
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call _ArrayCreateFromString
+	call ArrayCreateFromString
 	add $4, %esp
 	subl $4, %esp
 	fstps (%esp)

@@ -19,6 +19,7 @@ float ArrayCreate(float size);
 float ArrayCreateFromString(const char* string);
 float ArrayCreateFromNumber(float number);
 const char* ArrayConvertToString(float array_id);
+float ArrayConvertToNumber(float array_id);
 void ArrayDelete(float array_id);
 void ArrayDeleteAll(void);
 void ArrayClearMemoryAfterConvertsToStrings(void);

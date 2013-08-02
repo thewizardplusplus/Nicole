@@ -8,7 +8,7 @@ main:
 	fstps (%esp)
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call ToString
+	call ArrayCreateFromNumber
 	addl $4, %esp
 	subl $4, %esp
 	fstps (%esp)

@@ -7,7 +7,7 @@ main:
 	push (%eax)
 
 	// вызываем функцию из библиотеки, очищаем стек от её параметров, кладём на стек её результат
-	call _ArrayCreateFromString
+	call ArrayCreateFromString
 	add $4, %esp
 	subl $4, %esp
 	fstps (%esp)

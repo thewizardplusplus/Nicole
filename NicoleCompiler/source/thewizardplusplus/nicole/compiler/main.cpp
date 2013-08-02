@@ -255,7 +255,7 @@ std::string ProcessCommandLineArguments(int number_of_arguments, char**
 		std::string argument = arguments[1];
 		if (argument == "-v" || argument == "--version") {
 			ShowMessage("Nicole Compiler, compiler for the programming "
-				"language Nicole, version 0.1.0.\n"
+				"language Nicole, version 1.0.0a.\n"
 				"(c) 2013 thewizardplusplus, http://thewizardplusplus.ru.");
 			std::exit(EXIT_SUCCESS);
 		} else if (argument == "-h" || argument == "--help") {
@@ -394,6 +394,7 @@ std::string GetSubprogramNameByAlias(const std::string& alias) {
 	alias_map["&"] =        "NumberAnd";
 	alias_map["|"] =        "NumberOr";
 	alias_map["ToString"] = "ArrayCreateFromNumber";
+	alias_map["ToNumber"] = "ArrayConvertToNumber";
 	#elif defined(OS_WINDOWS)
 	alias_map["!"] =        "_NumberNot";
 	alias_map["*"] =        "_NumberMul";
@@ -407,6 +408,7 @@ std::string GetSubprogramNameByAlias(const std::string& alias) {
 	alias_map["&"] =        "_NumberAnd";
 	alias_map["|"] =        "_NumberOr";
 	alias_map["ToString"] = "_ArrayCreateFromNumber";
+	alias_map["ToNumber"] = "_ArrayConvertToNumber";
 	#endif
 
 	if (alias_map.count(alias) == 1) {
@@ -661,6 +663,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	#ifdef OS_LINUX
 	byte_code_module.functions["c_string"] =                                1;
 	byte_code_module.functions["ArrayAppend"] =                             2;
+	byte_code_module.functions["ArrayConvertToNumber"] =                    1;
 	byte_code_module.functions["ArrayCreate"] =                             1;
 	byte_code_module.functions["ArrayCreateFromNumber"] =                   1;
 	byte_code_module.functions["ArrayCreateFromString"] =                   1;
@@ -713,6 +716,7 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 	#elif defined(OS_WINDOWS)
 	byte_code_module.functions["_c_string"] =                                1;
 	byte_code_module.functions["_ArrayAppend"] =                             2;
+	byte_code_module.functions["_ArrayConvertToNumber"] =                    1;
 	byte_code_module.functions["_ArrayCreate"] =                             1;
 	byte_code_module.functions["_ArrayCreateFromNumber"] =                   1;
 	byte_code_module.functions["_ArrayCreateFromString"] =                   1;
@@ -1193,9 +1197,9 @@ std::string ConvertByteCodeToGnuAssembler(
 		} else if (mnemonic.mnemonic == "to_str") {
 			gnu_assembler_code +=
 				#ifdef OS_LINUX
-				"\tcall ArrayCreateFromString\n"
+				"\tcall ArrayConvertToString\n"
 				#elif defined(OS_WINDOWS)
-				"\tcall _ArrayCreateFromString\n"
+				"\tcall _ArrayConvertToString\n"
 				#endif
 				"\taddl $4, %esp\n"
 				"\tpush %eax\n";
@@ -1330,7 +1334,7 @@ int main(int number_of_arguments, char** arguments) {
 	#ifdef OS_LINUX
 	inbuild_string_constants["PATH_SEPARATOR"] = "\"/\"";
 	#elif defined(OS_WINDOWS)
-    inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
+	inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
 	#endif
 	ByteCodeModule byte_code_module = Compile(code_lines, inbuild_variables,
 		inbuild_string_constants);
