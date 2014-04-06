@@ -1,100 +1,95 @@
-// основано на http://sourceforge.net/p/predef/wiki/OperatingSystems/
-#if defined(__gnu_linux__) || defined(__linux__) || defined(linux) || defined( \
-	__linux)
-#define OS_LINUX
-#elif defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined( \
-	__TOS_WIN__) || defined(__WINDOWS__)
-#define OS_WINDOWS
-#else
-#error: an attempt to compile for an unsupported platform; supports Linux and \
-Windows x86 and x86-64.
-#endif
-
+#include <string>
+#include <map>
+#include <list>
+#include <stack>
+#include <set>
+//TODO: уточнить порядок и необходимость подключения
 #include <sstream>
 #include <algorithm>
 #include <iostream>
-#include <map>
-#include <stack>
-#include <set>
-#include <list>
 #include <cstdlib>
 #include <fstream>
 #include <cstdio>
 
-class MessageType {
-public:
-	enum Types {
-		INFORMATION,
-		ERROR
-	};
+// основано на http://sourceforge.net/p/predef/wiki/OperatingSystems/
+#if \
+	defined(__gnu_linux__) \
+	|| defined(__linux__) \
+	|| defined(linux) \
+	|| defined(__linux)
+	#define OS_LINUX
+#elif \
+	defined(_WIN32) \
+	|| defined(_WIN64) \
+	|| defined(__WIN32__) \
+	|| defined(__TOS_WIN__) \
+	|| defined(__WINDOWS__)
+	#define OS_WINDOWS
+#else
+	#error: \
+		an attempt to compile for an unsupported platform; \
+		supports Linux and Windows x86 and x86-64.
+#endif
+
+enum MessageType {
+	MESSAGE_INFORMATION,
+	MESSAGE_ERROR
 };
-class OperatorAssociativity {
-public:
-	enum Types {
-		LEFT,
-		RIGHT
-	};
+enum OperatorAssociativity {
+	ASSOCIATIVITY_LEFT,
+	ASSOCIATIVITY_RIGHT
 };
-class TokenizeState {
-public:
-	enum Types {
-		RESET,
-		NUMBER,
-		IDENTIFIER
-	};
+enum TokenizeState {
+	TOKENIZE_RESET,
+	TOKENIZE_NUMBER,
+	TOKENIZE_IDENTIFIER
 };
-typedef std::map<size_t, std::string>       CodeLines;
-typedef std::list<std::string>              StringList;
-typedef std::map<std::string, std::string>  AliasMap;
-class ByteCodeMnemonic {
-public:
+typedef std::map<size_t, std::string> CodeLines;
+typedef std::list<std::string> StringList;
+typedef std::map<std::string, std::string> AliasMap;
+struct ByteCodeMnemonic {
+	size_t line_number;
 	std::string mnemonic;
 	std::string operand;
-	size_t      line_number;
 
-	ByteCodeMnemonic(std::string mnemonic, size_t line_number);
-	ByteCodeMnemonic(std::string mnemonic, std::string operand, size_t
-		line_number);
+	ByteCodeMnemonic(
+		size_t line_number,
+		std::string mnemonic,
+		std::string operand = ""
+	) :
+		line_number(line_number),
+		mnemonic(mnemonic),
+		operand(operand)
+	{}
 };
-typedef std::list<ByteCodeMnemonic>         ByteCode;
-class ExpressionResultFlag {
-public:
-	enum Types {
-		NOTHING,
-		WERE_CONVERTED = 1 << 0,
-		IS_RESULT =      1 << 1
-	};
+typedef std::list<ByteCodeMnemonic> ByteCode;
+enum ExpressionResultFlag {
+	EXPRESSION_NOTHING =        0,
+	EXPRESSION_WERE_CONVERTED = 1 << 0,
+	EXPRESSION_IS_RESULT =      1 << 1
 };
-typedef std::pair<ByteCode, unsigned char>  CompileExpressionResult;
-typedef std::map<std::string, size_t>       SubprogramMap;
-typedef std::stack<size_t>                  ArgumentCounterStack;
-typedef std::set<std::string>               VariableSet;
-typedef std::pair<std::string, std::string> Library;
-typedef std::list<Library>                  LibrariesList;
-class ByteCodeModule {
-public:
-	ByteCode      byte_code;
-	VariableSet   variables;
+struct CompileExpressionResult {
+	ByteCode byte_code;
+	unsigned char flags;
+};
+typedef std::map<std::string, size_t> SubprogramMap;
+typedef std::stack<size_t> ArgumentCounterStack;
+typedef std::set<std::string> VariableSet;
+struct Library {
+	std::string path;
+	std::string name;
+};
+typedef std::list<Library> LibrariesList;
+struct ByteCodeModule {
+	ByteCode byte_code;
+	VariableSet variables;
 	SubprogramMap procedures;
 	SubprogramMap functions;
 	LibrariesList libraries;
 };
-typedef std::map<std::string, float>        InbuildVariableMap;
-typedef std::map<std::string, std::string>  InbuildStringConstantMap;
-typedef std::list<long>                     ConditionIdStack;
-
-ByteCodeMnemonic::ByteCodeMnemonic(std::string mnemonic, size_t line_number) :
-	mnemonic(mnemonic),
-	line_number(line_number)
-{}
-
-ByteCodeMnemonic::ByteCodeMnemonic(std::string mnemonic, std::string operand,
-	size_t line_number)
-:
-	mnemonic(mnemonic),
-	operand(operand),
-	line_number(line_number)
-{}
+typedef std::map<std::string, float> InbuildVariableMap;
+typedef std::map<std::string, std::string> InbuildStringConstantMap;
+typedef std::stack<long> ConditionIdStack;
 
 template<typename Type>
 std::string ConvertToString(Type value) {
@@ -127,14 +122,14 @@ std::string StringTrim(const std::string& string) {
 	return result;
 }
 
-void ShowMessage(const std::string& message, MessageType::Types type =
-	MessageType::INFORMATION)
+void ShowMessage(const std::string& message, MessageType type =
+	MESSAGE_INFORMATION)
 {
 	switch (type) {
-	case MessageType::ERROR:
+	case MESSAGE_ERROR:
 		std::cerr << message << std::endl;
 		break;
-	case MessageType::INFORMATION:
+	case MESSAGE_INFORMATION:
 	default:
 		std::cout << message << std::endl;
 		break;
@@ -156,7 +151,7 @@ void ShowByteCode(const ByteCodeModule& byte_code_module) {
 	LibrariesList::const_iterator i = byte_code_module.libraries.begin();
 	for (; i != byte_code_module.libraries.end(); ++i) {
 		Library library = *i;
-		result += " -L" + library.second + " -l" + library.first + "\n";
+		result += " -L" + library.path + " -l" + library.name + "\n";
 	}
 
 	result += "\nFunctions:\n";
@@ -183,7 +178,7 @@ void ShowByteCode(const ByteCodeModule& byte_code_module) {
 }
 
 void ProcessError(const std::string& description) {
-	ShowMessage(description, MessageType::ERROR);
+	ShowMessage(description, MESSAGE_ERROR);
 	std::exit(EXIT_FAILURE);
 }
 
@@ -220,11 +215,11 @@ bool IsOperator(const std::string& string) {
 		string == "=" || string == "&" || string == "|";
 }
 
-OperatorAssociativity::Types GetAssociativity(const std::string& string) {
+OperatorAssociativity GetAssociativity(const std::string& string) {
 	if (string != "!") {
-		return OperatorAssociativity::LEFT;
+		return ASSOCIATIVITY_LEFT;
 	} else {
-		return OperatorAssociativity::RIGHT;
+		return ASSOCIATIVITY_RIGHT;
 	}
 }
 
@@ -321,7 +316,7 @@ CodeLines Preprocess(const CodeLines& code_lines) {
 StringList Tokenize(const std::string& string, size_t line_number) {
 	StringList tokens;
 	std::string accumulator;
-	TokenizeState::Types state = TokenizeState::RESET;
+	TokenizeState state = TOKENIZE_RESET;
 
 	for (size_t i = 0; i < string.size(); i++) {
 		char symbol = string[i];
@@ -332,7 +327,7 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 			')' || symbol == ',')
 		{
 			if (!accumulator.empty()) {
-				if (state == TokenizeState::NUMBER && accumulator[accumulator
+				if (state == TOKENIZE_NUMBER && accumulator[accumulator
 					.size() - 1] == '.')
 				{
 					ProcessError("Unfinished number on line " + ConvertToString(
@@ -342,22 +337,22 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 				tokens.push_back(accumulator);
 				accumulator.clear();
 			}
-			state = TokenizeState::RESET;
+			state = TOKENIZE_RESET;
 
 			tokens.push_back(symbol_in_string);
 		} else if (std::isdigit(symbol)) {
 			accumulator += symbol;
-			if (state == TokenizeState::RESET) {
-				state = TokenizeState::NUMBER;
+			if (state == TOKENIZE_RESET) {
+				state = TOKENIZE_NUMBER;
 			}
-		} else if (symbol == '.' && state == TokenizeState::NUMBER) {
+		} else if (symbol == '.' && state == TOKENIZE_NUMBER) {
 			accumulator += symbol;
 		} else if ((std::isalpha(symbol) || symbol == '_') && (state ==
-			TokenizeState::RESET || state == TokenizeState::IDENTIFIER))
+			TOKENIZE_RESET || state == TOKENIZE_IDENTIFIER))
 		{
 			accumulator += symbol;
-			if (state == TokenizeState::RESET) {
-				state = TokenizeState::IDENTIFIER;
+			if (state == TOKENIZE_RESET) {
+				state = TOKENIZE_IDENTIFIER;
 			}
 		} else {
 			ProcessError("Unexpected symbol \"" + symbol_in_string + "\" in "
@@ -366,7 +361,7 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 	}
 
 	if (!accumulator.empty()) {
-		if (state == TokenizeState::NUMBER && accumulator[accumulator
+		if (state == TOKENIZE_NUMBER && accumulator[accumulator
 			.size() - 1] == '.')
 		{
 			ProcessError("Unfinished number on line " + ConvertToString(
@@ -436,9 +431,8 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 	for (; i != tokens.end(); ++i) {
 		std::string token = *i;
 		if (IsNumber(token)) {
-			result.first.push_back(ByteCodeMnemonic("push_n", token,
-				line_number));
-			result.second |= ExpressionResultFlag::IS_RESULT;
+			result.byte_code.push_back(ByteCodeMnemonic(line_number, "push_n", token));
+			result.flags |= EXPRESSION_IS_RESULT;
 			push_operation_were = true;
 		} else if (IsIdentifier(token)) {
 			std::string subprogram_name = GetSubprogramNameByAlias(token);
@@ -448,9 +442,8 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 				stack.push_back(token);
 				argument_counter_stack.push(0);
 			} else {
-				result.first.push_back(ByteCodeMnemonic("push_v", token,
-					line_number));
-				result.second |= ExpressionResultFlag::IS_RESULT;
+				result.byte_code.push_back(ByteCodeMnemonic(line_number, "push_v", token));
+				result.flags |= EXPRESSION_IS_RESULT;
 				push_operation_were = true;
 			}
 		} else if (token == ",") {
@@ -465,17 +458,17 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 				if (token_from_stack != "(") {
 					std::string subprogram_name = GetSubprogramNameByAlias(
 						token_from_stack);
-					result.first.push_back(ByteCodeMnemonic("call",
-						subprogram_name, line_number));
+					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
+						subprogram_name));
 					stack.pop_back();
 					conversion_is_last = false;
 					if (!IsOperator(token_from_stack) && procedures.count(
 						subprogram_name) == 1)
 					{
 						procedures_counter++;
-						result.second &= ~ExpressionResultFlag::IS_RESULT;
+						result.flags &= ~EXPRESSION_IS_RESULT;
 					} else {
-						result.second |= ExpressionResultFlag::IS_RESULT;
+						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
 				} else {
@@ -503,24 +496,24 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 					break;
 				}
 
-				if ((GetAssociativity(token) == OperatorAssociativity::LEFT &&
+				if ((GetAssociativity(token) == ASSOCIATIVITY_LEFT &&
 					GetPrecedence(token) <= GetPrecedence(token_from_stack)) ||
-					(GetAssociativity(token) == OperatorAssociativity::RIGHT &&
+					(GetAssociativity(token) == ASSOCIATIVITY_RIGHT &&
 					GetPrecedence(token) < GetPrecedence(token_from_stack)))
 				{
 					std::string subprogram_name = GetSubprogramNameByAlias(
 						token_from_stack);
-					result.first.push_back(ByteCodeMnemonic("call",
-						subprogram_name, line_number));
+					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
+						subprogram_name));
 					stack.pop_back();
 					conversion_is_last = false;
 					if (!IsOperator(token_from_stack) && procedures.count(
 						subprogram_name) == 1)
 					{
 						procedures_counter++;
-						result.second &= ~ExpressionResultFlag::IS_RESULT;
+						result.flags &= ~EXPRESSION_IS_RESULT;
 					} else {
-						result.second |= ExpressionResultFlag::IS_RESULT;
+						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
 				} else {
@@ -543,16 +536,16 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 				if (token_from_stack != "(") {
 					std::string subprogram_name = GetSubprogramNameByAlias(
 						token_from_stack);
-					result.first.push_back(ByteCodeMnemonic("call",
-						subprogram_name, line_number));
+					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
+						subprogram_name));
 					conversion_is_last = false;
 					if (!IsOperator(token_from_stack) && procedures.count(
 						subprogram_name) == 1)
 					{
 						procedures_counter++;
-						result.second &= ~ExpressionResultFlag::IS_RESULT;
+						result.flags &= ~EXPRESSION_IS_RESULT;
 					} else {
-						result.second |= ExpressionResultFlag::IS_RESULT;
+						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
 				} else {
@@ -593,22 +586,21 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 					}
 
 					if (subprogram_name != "c_string") {
-						result.first.push_back(ByteCodeMnemonic("call",
-							subprogram_name, line_number));
+						result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
+							subprogram_name));
 						conversion_is_last = false;
 						if (procedures.count(subprogram_name) == 1) {
 							procedures_counter++;
-							result.second &= ~ExpressionResultFlag::IS_RESULT;
+							result.flags &= ~EXPRESSION_IS_RESULT;
 						} else {
-							result.second |= ExpressionResultFlag::IS_RESULT;
+							result.flags |= EXPRESSION_IS_RESULT;
 							push_operation_were = true;
 						}
 					} else {
-						result.first.push_back(ByteCodeMnemonic("to_str",
-							line_number));
-						result.second |= ExpressionResultFlag::WERE_CONVERTED;
+						result.byte_code.push_back(ByteCodeMnemonic(line_number, "to_str"));
+						result.flags |= EXPRESSION_WERE_CONVERTED;
 						conversion_is_last = true;
-						result.second |= ExpressionResultFlag::IS_RESULT;
+						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
 					stack.pop_back();
@@ -630,15 +622,14 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 
 		std::string subprogram_name = GetSubprogramNameByAlias(
 			token_from_stack);
-		result.first.push_back(ByteCodeMnemonic("call", subprogram_name,
-			line_number));
+		result.byte_code.push_back(ByteCodeMnemonic(line_number, "call", subprogram_name));
 		stack.pop_back();
 		conversion_is_last = false;
 		if (procedures.count(subprogram_name) == 1) {
 			procedures_counter++;
-			result.second &= ~ExpressionResultFlag::IS_RESULT;
+			result.flags &= ~EXPRESSION_IS_RESULT;
 		} else {
-			result.second |= ExpressionResultFlag::IS_RESULT;
+			result.flags |= EXPRESSION_IS_RESULT;
 		}
 	}
 
@@ -646,8 +637,8 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 		ProcessError("Illegal conversion on line " + ConvertToString(
 			line_number) + ".");
 	}
-	if (procedures_counter > 1 || (procedures_counter == 1 && result.second &
-		ExpressionResultFlag::IS_RESULT))
+	if (procedures_counter > 1 || (procedures_counter == 1 && result.flags &
+		EXPRESSION_IS_RESULT))
 	{
 		ProcessError("Using result of procedure on line " + ConvertToString(
 			line_number) + ".");
@@ -803,23 +794,23 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			#endif
 			if (index != std::string::npos) {
 				index++;
-				library.second = path.substr(0, index);
+				library.path = path.substr(0, index);
 			} else {
 				index = 0;
 			}
 
-			library.first = path.substr(index);
-			if (library.first.empty()) {
+			library.name = path.substr(index);
+			if (library.name.empty()) {
 				ProcessError("Invalid format of path on line " +
 					ConvertToString(line_number) + ".");
 			}
-			size_t library_length = library.first.length();
+			size_t library_length = library.name.length();
 			size_t suffix_begin_index = library_length - 2;
-			if (library_length > 5 && library.first.substr(0, 3) == "lib" &&
-				(library.first.substr(suffix_begin_index) == ".a" || library.
-				first.substr(suffix_begin_index) == ".o"))
+			if (library_length > 5 && library.name.substr(0, 3) == "lib" &&
+				(library.name.substr(suffix_begin_index) == ".a" || library.
+				name.substr(suffix_begin_index) == ".o"))
 			{
-				library.first = library.first.substr(3, suffix_begin_index - 3);
+				library.name = library.name.substr(3, suffix_begin_index - 3);
 			}
 
 			byte_code_module.libraries.push_back(library);
@@ -874,8 +865,8 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 				ProcessError("Invalid format of string on line " +
 					ConvertToString(line_number) + ".");
 			}
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("push_s",
-				string, line_number));
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "push_s",
+				string));
 
 			std::string identifier = code_line.substr(7, index - 7);
 			identifier = StringTrim(identifier);
@@ -885,8 +876,8 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			}
 
 			byte_code_module.variables.insert(identifier);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("pop",
-				identifier, line_number));
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "pop",
+				identifier));
 		} else if (code_line.substr(0, 4) == "let ") {
 			size_t index = code_line.find('=');
 			if (index == std::string::npos) {
@@ -900,26 +891,24 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			CompileExpressionResult compile_expression_result =
 				CompileExpression(tokens, byte_code_module.procedures,
 					byte_code_module.functions, line_number);
-			if (!(compile_expression_result.second & ExpressionResultFlag::
-				IS_RESULT))
+			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT))
 			{
 				ProcessError("Using result of procedure on line " +
 					ConvertToString(line_number) + ".");
 			}
 			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
-				compile_expression_result.first.begin(),
-				compile_expression_result.first.end());
-			if (compile_expression_result.second & ExpressionResultFlag::
-				WERE_CONVERTED)
+				compile_expression_result.byte_code.begin(),
+				compile_expression_result.byte_code.end());
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
 			{
 				#ifdef OS_LINUX
 				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
 					GetSubprogramNameByAlias(
 					"ArrayClearMemoryAfterConvertsToStrings"), line_number));
 				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"_ArrayClearMemoryAfterConvertsToStrings")));
 				#endif
 			}
 
@@ -931,8 +920,8 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			}
 
 			byte_code_module.variables.insert(identifier);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("pop",
-				identifier, line_number));
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "pop",
+				identifier));
 		} else if (code_line.substr(0, 6) == "label ") {
 			std::string identifier = code_line.substr(6);
 			identifier = StringTrim(identifier);
@@ -941,8 +930,8 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 					"line " + ConvertToString(line_number) + ".");
 			}
 
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("lbl",
-				identifier, line_number));
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "lbl",
+				identifier));
 		} else if (code_line.substr(0, 6) == "go to ") {
 			std::string identifier = code_line.substr(6);
 			identifier = StringTrim(identifier);
@@ -951,8 +940,8 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 					"line " + ConvertToString(line_number) + ".");
 			}
 
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("jmp",
-				identifier, line_number));
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "jmp",
+				identifier));
 		} else if (code_line.substr(0, 3) == "if ") {
 			size_t index = code_line.find("then");
 			if (index == std::string::npos) {
@@ -966,34 +955,31 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			CompileExpressionResult compile_expression_result =
 				CompileExpression(tokens, byte_code_module.procedures,
 					byte_code_module.functions, line_number);
-			if (!(compile_expression_result.second & ExpressionResultFlag::
-				IS_RESULT))
+			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT))
 			{
 				ProcessError("Using result of procedure on line " +
 					ConvertToString(line_number) + ".");
 			}
 			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
-				compile_expression_result.first.begin(),
-				compile_expression_result.first.end());
-			if (compile_expression_result.second & ExpressionResultFlag::
-				WERE_CONVERTED)
+				compile_expression_result.byte_code.begin(),
+				compile_expression_result.byte_code.end());
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
 			{
 				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"ArrayClearMemoryAfterConvertsToStrings")));
 				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"_ArrayClearMemoryAfterConvertsToStrings")));
 				#endif
 			}
 
 			condition_counter++;
-			condition_id_stack.push_back(condition_counter);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic("je",
-				"end_of_condition" + ConvertToString(condition_counter),
-				line_number));
+			condition_id_stack.push(condition_counter);
+			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "je",
+				"end_of_condition" + ConvertToString(condition_counter)));
 
 			new_condition = true;
 		} else {
@@ -1002,36 +988,33 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 				CompileExpression(tokens, byte_code_module.procedures,
 					byte_code_module.functions, line_number);
 			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
-				compile_expression_result.first.begin(),
-				compile_expression_result.first.end());
-			if (compile_expression_result.second & ExpressionResultFlag::
-				WERE_CONVERTED)
+				compile_expression_result.byte_code.begin(),
+				compile_expression_result.byte_code.end());
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
 			{
 				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"ArrayClearMemoryAfterConvertsToStrings")));
 				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"_ArrayClearMemoryAfterConvertsToStrings")));
 				#endif
 			}
-			if (compile_expression_result.second & ExpressionResultFlag::
-				IS_RESULT)
+			if (compile_expression_result.flags & EXPRESSION_IS_RESULT)
 			{
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(
-					"clr_stck", "", line_number));
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number,
+					"clr_stck"));
 			}
 		}
 
 		if (!new_condition) {
 			while (!condition_id_stack.empty()) {
-				long last_condition_id = condition_id_stack.back();
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("lbl",
-					"end_of_condition" + ConvertToString(last_condition_id),
-					line_number));
-				condition_id_stack.pop_back();
+				long last_condition_id = condition_id_stack.top();
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "lbl",
+					"end_of_condition" + ConvertToString(last_condition_id)));
+				condition_id_stack.pop();
 			}
 		}
 	}
@@ -1288,10 +1271,10 @@ void MakeExecutableFile(const std::string& gnu_assembler_code, const
 	LibrariesList::const_iterator i = libraries.begin();
 	for (; i != libraries.end(); ++i) {
 		Library library = *i;
-		if (!library.second.empty()) {
-			command += " -L" + library.second;
+		if (!library.path.empty()) {
+			command += " -L" + library.path;
 		}
-		command += " -l" + library.first;
+		command += " -l" + library.name;
 	}
 	command += " -L./libs/ -lNicoleFramework";
 	if (debug_output) {

@@ -1,0 +1,57 @@
+program = statement_list;
+
+statement_list = statement, {statement};
+statement =
+	statement_use
+	| statement_procedure
+	| statement_function
+	| statement_string
+	| statement_let
+	| statement_label
+	| statement_goto
+	| statement_if
+	| function_call;
+statement_use = "use", CONSTANT_STRING, LINE_BREAK;
+statement_procedure =
+	"procedure",
+	IDENTIFIER_SIMPLE,
+	"/",
+	CONSTANT_REAL,
+	LINE_BREAK;
+statement_function =
+	"function",
+	IDENTIFIER_SIMPLE,
+	"/",
+	CONSTANT_REAL,
+	LINE_BREAK;
+statement_string =
+	"string",
+	IDENTIFIER_SIMPLE,
+	"=",
+	CONSTANT_STRING,
+	LINE_BREAK;
+statement_let = "let", IDENTIFIER_SIMPLE, "=", expression, LINE_BREAK;
+statement_label = "label", IDENTIFIER_SIMPLE, LINE_BREAK;
+statement_goto = "go", "to", IDENTIFIER_SIMPLE, LINE_BREAK;
+statement_if = "if", expression, "then", LINE_BREAK, statement, LINE_BREAK;
+
+expression = expression_or;
+expression_or = expression_and, {"|", expression_and};
+expression_and = expression_equality, {"&", expression_equality};
+expression_equality = expression_compare, {"=", expression_compare};
+expression_compare = expression_add, {("<" | ">"), expression_add};
+expression_add = expression_mul, {("+" | "-" | "$"), expression_mul};
+expression_mul = expression_unary, {("*" | "/"), expression_unary};
+expression_unary = "!", expression_atom;
+expression_atom =
+	CONSTANT_REAL
+	| IDENTIFIER_SIMPLE
+	| ("(", expression, ")")
+	| function_call;
+
+function_call = IDENTIFIER_SIMPLE, "(", [expression, {",", expression}], ")";
+
+IDENTIFIER_SIMPLE = ? /[A-z_]\w*/ ?;
+CONSTANT_STRING = ? /"(\\.|[^"])*"/ ?;
+CONSTANT_REAL = ? /\d+[.\d+]/ ?;
+LINE_BREAK = "\n";
