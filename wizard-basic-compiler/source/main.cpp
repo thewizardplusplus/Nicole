@@ -317,32 +317,57 @@ size_t GetPrecedence(const std::string& string) {
 	}
 }
 
-std::string ProcessCommandLineArguments(int number_of_arguments, char**
-	arguments)
-{
+void ShowVersion(void) {
+	ShowMessage(
+		"Wizard BASIC compiler, v1.0\n"
+		"(c) thewizardplusplus, 2014"
+	);
+}
+
+void ShowShortHelp(void) {
+	ShowMessage(
+		"Usage:\n"
+			"\twbc option\n"
+			"\twbc filename\n"
+		"\n"
+		"Options:\n"
+			"\t-v, --version - show version;\n"
+			"\t-h, --help - show help.\n"
+		"\n"
+		"Arguments:\n"
+			"\tfilename - program filename."
+	);
+}
+
+void ShowHelp(void) {
+	ShowVersion();
+	ShowMessage("");
+	ShowShortHelp();
+}
+
+std::string ProcessCommandLineArguments(
+	int number_of_arguments,
+	char* arguments[]
+) {
 	if (number_of_arguments != 2) {
-		ProcessError("Invalid number of arguments. Expected one argument.");
+		ShowMessage("Invalid number of arguments. Expected one argument.\n");
+		ShowShortHelp();
+
+		std::exit(EXIT_FAILURE);
 	} else {
 		std::string argument = arguments[1];
 		if (argument == "-v" || argument == "--version") {
-			ShowMessage("Nicole Compiler, compiler for the programming "
-				"language Nicole, version 1.0.0a.\n"
-				"(c) 2013 thewizardplusplus, http://thewizardplusplus.ru.");
+			ShowVersion();
 			std::exit(EXIT_SUCCESS);
 		} else if (argument == "-h" || argument == "--help") {
-			ShowMessage("Usage:\n"
-				"\tnicole_compiler (option|filename)\n"
-				"\n"
-				"Option:\n"
-				"\t-v, --version - display compiler version;\n"
-				"\t-h, --help -    display this information.");
+			ShowHelp();
 			std::exit(EXIT_SUCCESS);
 		} else {
 			return argument;
 		}
 	}
 
-	return std::string();
+	return "";
 }
 
 CodeLines FileRead(const std::string& filename) {
@@ -1364,7 +1389,7 @@ void MakeExecutableFile(const std::string& gnu_assembler_code, const
 	std::remove(filename.c_str());
 }
 
-int main(int number_of_arguments, char** arguments) {
+int main(int number_of_arguments, char* arguments[]) {
 	std::string filename = ProcessCommandLineArguments(number_of_arguments,
 		arguments);
 	CodeLines code_lines = FileRead(filename);
