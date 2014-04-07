@@ -3,11 +3,12 @@
 #include <list>
 #include <stack>
 #include <set>
-//TODO: уточнить порядок и необходимость подключения
 #include <sstream>
+#include <functional>
 #include <algorithm>
 #include <iostream>
 #include <cstdlib>
+//TODO: уточнить порядок и необходимость подключения
 #include <fstream>
 #include <cstdio>
 
@@ -110,73 +111,112 @@ Type ConvertFromString(const std::string& value) {
 }
 
 std::string StringTrim(const std::string& string) {
-	std::string result = string;
+	std::string string_copy = string;
+	string_copy.erase(
+		string_copy.begin(),
+		std::find_if(
+			string_copy.begin(),
+			string_copy.end(),
+			std::not1(std::ptr_fun<int, int>(std::isspace))
+		)
+	);
+	string_copy.erase(
+		std::find_if(
+			string_copy.rbegin(),
+			string_copy.rend(),
+			std::not1(std::ptr_fun<int, int>(std::isspace))
+		).base(),
+		string_copy.end()
+	);
 
-	std::string::iterator result_begin = result.begin();
-	std::unary_negate<std::pointer_to_unary_function<int, int> > predicate =
-		std::not1(std::ptr_fun<int, int>(std::isspace));
-	result.erase(result_begin, std::find_if(result_begin, result.end(),
-		predicate));
-	result.erase(std::find_if(result.rbegin(), result.rend(), predicate).base(),
-		result.end());
-
-	return result;
+	return string_copy;
 }
 
-void ShowMessage(const std::string& message, MessageType type =
-	MESSAGE_INFORMATION)
-{
+void ShowMessage(
+	const std::string& message,
+	MessageType type = MESSAGE_INFORMATION
+) {
 	switch (type) {
-	case MESSAGE_ERROR:
-		std::cerr << message << std::endl;
-		break;
-	case MESSAGE_INFORMATION:
-	default:
-		std::cout << message << std::endl;
-		break;
+		case MESSAGE_ERROR:
+			std::cerr << message << '\n';
+			break;
+		case MESSAGE_INFORMATION:
+		default:
+			std::cout << message << '\n';
+			break;
 	}
 }
 
-void ShowCodeLines(const CodeLines& code_lines) {
-	std::string result = "Code:\n";
-	CodeLines::const_iterator i = code_lines.begin();
-	for (; i != code_lines.end(); ++i) {
-		result += ConvertToString(i->first) + " " + i->second + "\n";
+#ifdef DEBUG_OUTPUT
+	void ShowCodeLines(const CodeLines& code_lines) {
+		std::string result = "Code:\n";
+		for (
+			CodeLines::const_iterator i = code_lines.begin();
+			i != code_lines.end();
+			++i
+		) {
+			result += ConvertToString(i->first) + " " + i->second + "\n";
+		}
+
+		ShowMessage(result);
 	}
+#endif
 
-	ShowMessage(result);
-}
+#ifdef DEBUG_OUTPUT
+	void ShowByteCode(const ByteCodeModule& byte_code_module) {
+		std::string result = "Libraries:\n";
+		for (
+			LibrariesList::const_iterator i =
+				byte_code_module.libraries.begin();
+			i != byte_code_module.libraries.end();
+			++i
+		) {
+			result += " -L" + i->path + " -l" + i->name + "\n";
+		}
 
-void ShowByteCode(const ByteCodeModule& byte_code_module) {
-	std::string result = "Libraries:\n";
-	LibrariesList::const_iterator i = byte_code_module.libraries.begin();
-	for (; i != byte_code_module.libraries.end(); ++i) {
-		Library library = *i;
-		result += " -L" + library.path + " -l" + library.name + "\n";
+		result += "\nFunctions:\n";
+		for (
+			SubprogramMap::const_iterator j =
+				byte_code_module.functions.begin();
+			j != byte_code_module.functions.end();
+			++j
+		) {
+			result +=
+				j->first
+				+ " ("
+				+ ConvertToString(j->second)
+				+ " argument"
+				+ (j->second != 1 ? "s" : "")
+				+ ")\n";
+		}
+
+		result += "\nVariables:\n";
+		for (
+			VariableSet::const_iterator k = byte_code_module.variables.begin();
+			k != byte_code_module.variables.end();
+			++k
+		) {
+			result += *k + "\n";
+		}
+
+		result += "\nByte code:\n";
+		for (
+			ByteCode::const_iterator m = byte_code_module.byte_code.begin();
+			m != byte_code_module.byte_code.end();
+			++m
+		) {
+			result +=
+				ConvertToString(m->line_number)
+				+ " "
+				+ m->mnemonic
+				+ " "
+				+ m->operand
+				+ "\n";
+		}
+
+		ShowMessage(result);
 	}
-
-	result += "\nFunctions:\n";
-	SubprogramMap::const_iterator j = byte_code_module.functions.begin();
-	for (; j != byte_code_module.functions.end(); ++j) {
-		result += j->first + " (" + ConvertToString(j->second) +
-			(j->second != 1 ? " arguments)" : " argument)") + "\n";
-	}
-
-	result += "\nVariables:\n";
-	VariableSet::const_iterator k = byte_code_module.variables.begin();
-	for (; k != byte_code_module.variables.end(); ++k) {
-		result += *k + "\n";
-	}
-
-	result += "\nByte code:\n";
-	ByteCode::const_iterator l = byte_code_module.byte_code.begin();
-	for (; l != byte_code_module.byte_code.end(); ++l) {
-		result += ConvertToString((*l).line_number) + " " + (*l).mnemonic + " "
-			+ (*l).operand + "\n";
-	}
-
-	ShowMessage(result);
-}
+#endif
 
 void ProcessError(const std::string& description) {
 	ShowMessage(description, MESSAGE_ERROR);
@@ -184,36 +224,71 @@ void ProcessError(const std::string& description) {
 }
 
 bool IsNumber(const std::string& string) {
-	std::ptrdiff_t number_of_digits = std::count_if(string.begin(), string
-		.end(), std::ptr_fun<int, int>(std::isdigit));
-	std::ptrdiff_t number_of_dots = std::count_if(string.begin(), string.end(),
-		std::bind1st(std::equal_to<char>(), '.'));
-	return number_of_digits != 0 && (number_of_dots == 0 || number_of_dots == 1)
-		&& string[0] != '.' && string[string.size() - 1] != '.' && static_cast<
-		std::size_t>(number_of_digits + number_of_dots) == string.length();
+	std::ptrdiff_t number_of_digits = std::count_if(
+		string.begin(),
+		string.end(),
+		std::ptr_fun<int, int>(std::isdigit)
+	);
+	std::ptrdiff_t number_of_dots = std::count_if(
+		string.begin(),
+		string.end(),
+		std::bind1st(std::equal_to<char>(), '.')
+	);
+
+	return
+		number_of_digits != 0
+		&& (number_of_dots == 0 || number_of_dots == 1)
+		&& string[0] != '.'
+		&& string[string.size() - 1] != '.'
+		&& static_cast<std::size_t>(number_of_digits + number_of_dots)
+			== string.length();
 }
 
 bool IsString(const std::string& string) {
-	return string.size() >= 2 && string[0] == '"' && string[string.size() - 1]
-		== '"';
+	return
+		string.size() >= 2
+		&& string[0] == '"'
+		&& string[string.size() - 1] == '"';
 }
 
 bool IsIdentifier(const std::string& string) {
-	std::ptrdiff_t number_of_digits = std::count_if(string.begin(), string
-		.end(), std::ptr_fun<int, int>(std::isdigit));
-	std::ptrdiff_t number_of_letters = std::count_if(string.begin(), string
-		.end(), std::ptr_fun<int, int>(std::isalpha));
-	std::ptrdiff_t number_of_underscores = std::count_if(string.begin(), string
-		.end(), std::bind1st(std::equal_to<char>(), '_'));
-	return (number_of_letters != 0 || number_of_underscores != 0) &&
-		!std::isdigit(string[0]) && static_cast<std::size_t>(number_of_digits +
-		number_of_letters + number_of_underscores) == string.length();
+	std::ptrdiff_t number_of_digits = std::count_if(
+		string.begin(),
+		string.end(),
+		std::ptr_fun<int, int>(std::isdigit)
+	);
+	std::ptrdiff_t number_of_letters = std::count_if(
+		string.begin(),
+		string.end(),
+		std::ptr_fun<int, int>(std::isalpha)
+	);
+	std::ptrdiff_t number_of_underscores = std::count_if(
+		string.begin(),
+		string.end(),
+		std::bind1st(std::equal_to<char>(), '_')
+	);
+
+	return
+		(number_of_letters != 0 || number_of_underscores != 0)
+		&& !std::isdigit(string[0])
+		&& static_cast<std::size_t>(
+			number_of_digits + number_of_letters + number_of_underscores
+		) == string.length();
 }
 
 bool IsOperator(const std::string& string) {
-	return string == "!" || string == "*" || string == "/" || string == "+" ||
-		string == "-" || string == "$" || string == "<" || string == ">" ||
-		string == "=" || string == "&" || string == "|";
+	return
+		string == "!"
+		|| string == "*"
+		|| string == "/"
+		|| string == "+"
+		|| string == "-"
+		|| string == "$"
+		|| string == "<"
+		|| string == ">"
+		|| string == "="
+		|| string == "&"
+		|| string == "|";
 }
 
 OperatorAssociativity GetAssociativity(const std::string& string) {
@@ -224,7 +299,7 @@ OperatorAssociativity GetAssociativity(const std::string& string) {
 	}
 }
 
-unsigned long GetPrecedence(const std::string& string) {
+size_t GetPrecedence(const std::string& string) {
 	if (string == "!") {
 		return 6;
 	} else if (string == "*" || string == "/") {
@@ -1253,21 +1328,21 @@ std::string ConvertByteCodeToGnuAssembler(
 }
 
 void MakeExecutableFile(const std::string& gnu_assembler_code, const
-	LibrariesList& libraries, bool debug_output)
+	LibrariesList& libraries)
 {
 	#ifdef OS_LINUX
 	std::string filename = std::string(std::tmpnam(NULL)) + ".s";
 	#elif defined(OS_WINDOWS)
 	std::string filename = std::string(std::tmpnam(NULL)) + "s";
 	#endif
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowMessage("Save GNU Assembler code to \"" + filename + "\".");
-	}
+	#endif
 	FileWrite(filename, gnu_assembler_code);
 
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowMessage("Make executable file.");
-	}
+	#endif
 	std::string command = "g++ -m32 -o program " + filename;
 	LibrariesList::const_iterator i = libraries.begin();
 	for (; i != libraries.end(); ++i) {
@@ -1278,9 +1353,9 @@ void MakeExecutableFile(const std::string& gnu_assembler_code, const
 		command += " -l" + library.name;
 	}
 	command += " -L./libs/ -lNicoleFramework";
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowMessage("Using command: \"" + command + "\".");
-	}
+	#endif
 	int result = std::system(command.c_str());
 	if (result != 0) {
 		ProcessError("Assembling or linking finished with error.");
@@ -1290,8 +1365,6 @@ void MakeExecutableFile(const std::string& gnu_assembler_code, const
 }
 
 int main(int number_of_arguments, char** arguments) {
-	bool debug_output = true;
-
 	std::string filename = ProcessCommandLineArguments(number_of_arguments,
 		arguments);
 	CodeLines code_lines = FileRead(filename);
@@ -1299,9 +1372,9 @@ int main(int number_of_arguments, char** arguments) {
 	if (code_lines.empty()) {
 		ProcessError("Program is empty.");
 	}
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowCodeLines(code_lines);
-	}
+	#endif
 
 	InbuildVariableMap inbuild_variables;
 	inbuild_variables["FALSE"] =                  0.0f;
@@ -1322,16 +1395,16 @@ int main(int number_of_arguments, char** arguments) {
 	#endif
 	ByteCodeModule byte_code_module = Compile(code_lines, inbuild_variables,
 		inbuild_string_constants);
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowByteCode(byte_code_module);
-	}
+	#endif
 
 	std::string gnu_assembler_code = ConvertByteCodeToGnuAssembler(
 		byte_code_module, inbuild_variables, inbuild_string_constants);
-	if (debug_output) {
+	#ifdef DEBUG_OUTPUT
 		ShowMessage("GNU Assembler:");
 		ShowMessage(gnu_assembler_code);
-	}
-	MakeExecutableFile(gnu_assembler_code, byte_code_module.libraries,
-		debug_output);
+	#endif
+
+	MakeExecutableFile(gnu_assembler_code, byte_code_module.libraries);
 }

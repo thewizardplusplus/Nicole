@@ -3,6 +3,7 @@ TARGET = wbc
 CONFIG += console
 CONFIG += warn_on
 CONFIG -= qt
+DEFINES += DEBUG_OUTPUT
 
 # файлы проекта
 SOURCES += source/main.cpp
