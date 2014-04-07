@@ -174,6 +174,22 @@ void ShowMessage(
 			result += " -L" + i->path + " -l" + i->name + "\n";
 		}
 
+		result += "\nProcedures:\n";
+		for (
+			SubprogramMap::const_iterator j =
+				byte_code_module.procedures.begin();
+			j != byte_code_module.procedures.end();
+			++j
+		) {
+			result +=
+				j->first
+				+ " ("
+				+ ConvertToString(j->second)
+				+ " argument"
+				+ (j->second != 1 ? "s" : "")
+				+ ")\n";
+		}
+
 		result += "\nFunctions:\n";
 		for (
 			SubprogramMap::const_iterator j =
@@ -350,7 +366,9 @@ std::string ProcessCommandLineArguments(
 	char* arguments[]
 ) {
 	if (number_of_arguments != 2) {
-		ShowMessage("Invalid number of arguments. Expected one argument.\n");
+		ShowMessage(
+			"Error! Invalid number of arguments. Expected one argument.\n"
+		);
 		ShowShortHelp();
 
 		std::exit(EXIT_FAILURE);
@@ -372,17 +390,17 @@ std::string ProcessCommandLineArguments(
 
 CodeLines FileRead(const std::string& filename) {
 	std::ifstream in(filename.c_str());
-	if (!in.is_open()) {
-		ProcessError("Unable to open source file \"" + filename + "\".");
+	if (!in) {
+		ProcessError("Error! Unable to open source file \"" + filename + "\".");
 	}
 
 	CodeLines code_lines;
 	size_t line_number = 0;
-	std::string buffer;
-	while (in.good()) {
+	while (in) {
+		std::string buffer;
 		std::getline(in, buffer);
-		code_lines[line_number] = buffer;
-		line_number++;
+
+		code_lines[line_number++] = buffer;
 	}
 
 	return code_lines;
@@ -390,83 +408,104 @@ CodeLines FileRead(const std::string& filename) {
 
 void FileWrite(const std::string& filename, const std::string& text) {
 	std::ofstream out(filename.c_str());
-	if (!out.is_open()) {
-		ProcessError("Unable to open target file \"" + filename + "\".");
+	if (!out) {
+		ProcessError("Error! Unable to open target file \"" + filename + "\".");
 	}
 
 	out << text;
 }
 
 CodeLines Preprocess(const CodeLines& code_lines) {
-	CodeLines result;
-	CodeLines::const_iterator i = code_lines.begin();
-	for (; i != code_lines.end(); ++i) {
+	CodeLines preprocessed_code_lines;
+	for (
+		CodeLines::const_iterator i = code_lines.begin();
+		i != code_lines.end();
+		++i
+	) {
 		std::string code_line = StringTrim(i->second);
-		if (code_line.empty()) {
+		if (
+			code_line.empty()
+			|| code_line.substr(0, 5) == "note "
+			|| code_line == "note"
+		) {
 			continue;
-		} else if (code_line.substr(0, 5) == "note " || code_line == "note") {
-			continue;
-		} else {
-			result[i->first] = code_line;
 		}
+
+		preprocessed_code_lines[i->first] = code_line;
 	}
 
-	return result;
+	return preprocessed_code_lines;
 }
 
 StringList Tokenize(const std::string& string, size_t line_number) {
-	StringList tokens;
-	std::string accumulator;
 	TokenizeState state = TOKENIZE_RESET;
-
-	for (size_t i = 0; i < string.size(); i++) {
+	std::string accumulator;
+	StringList tokens;
+	for (size_t i = 0; i < string.size(); ++i) {
 		char symbol = string[i];
-		std::string symbol_in_string = std::string(1, symbol);
+		std::string symbol_as_string = std::string(1, symbol);
 		if (std::isspace(symbol)) {
 			continue;
-		} else if (IsOperator(symbol_in_string) || symbol == '(' || symbol ==
-			')' || symbol == ',')
-		{
+		} else if (
+			IsOperator(symbol_as_string)
+			|| symbol == '('
+			|| symbol == ')'
+			|| symbol == ','
+		) {
 			if (!accumulator.empty()) {
-				if (state == TOKENIZE_NUMBER && accumulator[accumulator
-					.size() - 1] == '.')
-				{
-					ProcessError("Unfinished number on line " + ConvertToString(
-						line_number) + ".");
+				if (
+					state == TOKENIZE_NUMBER
+					&& accumulator[accumulator.size() - 1] == '.'
+				) {
+					ProcessError(
+						"Error! Unfinished number on line "
+						+ ConvertToString(line_number)
+						+ "."
+					);
 				}
 
 				tokens.push_back(accumulator);
 				accumulator.clear();
 			}
-			state = TOKENIZE_RESET;
 
-			tokens.push_back(symbol_in_string);
+			state = TOKENIZE_RESET;
+			tokens.push_back(symbol_as_string);
 		} else if (std::isdigit(symbol)) {
-			accumulator += symbol;
 			if (state == TOKENIZE_RESET) {
 				state = TOKENIZE_NUMBER;
 			}
+			accumulator += symbol;
 		} else if (symbol == '.' && state == TOKENIZE_NUMBER) {
 			accumulator += symbol;
-		} else if ((std::isalpha(symbol) || symbol == '_') && (state ==
-			TOKENIZE_RESET || state == TOKENIZE_IDENTIFIER))
-		{
-			accumulator += symbol;
+		} else if (
+			(std::isalpha(symbol) || symbol == '_')
+			&& (state == TOKENIZE_RESET || state == TOKENIZE_IDENTIFIER)
+		) {
 			if (state == TOKENIZE_RESET) {
 				state = TOKENIZE_IDENTIFIER;
 			}
+			accumulator += symbol;
 		} else {
-			ProcessError("Unexpected symbol \"" + symbol_in_string + "\" in "
-				"expression on line " + ConvertToString(line_number) + ".");
+			ProcessError(
+				"Error! Unexpected symbol \""
+				+ symbol_as_string
+				+ "\" in expression on line "
+				+ ConvertToString(line_number)
+				+ "."
+			);
 		}
 	}
 
 	if (!accumulator.empty()) {
-		if (state == TOKENIZE_NUMBER && accumulator[accumulator
-			.size() - 1] == '.')
-		{
-			ProcessError("Unfinished number on line " + ConvertToString(
-				line_number) + ".");
+		if (
+			state == TOKENIZE_NUMBER
+			&& accumulator[accumulator.size() - 1] == '.'
+		) {
+			ProcessError(
+				"Error! Unfinished number on line "
+				+ ConvertToString(line_number)
+				+ "."
+			);
 		}
 
 		tokens.push_back(accumulator);
@@ -475,46 +514,34 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 	return tokens;
 }
 
+std::string CorrectSubprogramName(const std::string& name) {
+	#ifdef OS_LINUX
+		return name;
+	#elif defined(OS_WINDOWS)
+		return "_" + name;
+	#endif
+}
+
 std::string GetSubprogramNameByAlias(const std::string& alias) {
 	AliasMap alias_map;
-	#ifdef OS_LINUX
-	alias_map["!"] =        "NumberNot";
-	alias_map["*"] =        "NumberMul";
-	alias_map["/"] =        "NumberDiv";
-	alias_map["+"] =        "NumberAdd";
-	alias_map["-"] =        "NumberSub";
-	alias_map["$"] =        "ArrayAppend";
-	alias_map["<"] =        "NumberLs";
-	alias_map[">"] =        "NumberGt";
-	alias_map["="] =        "NumberEq";
-	alias_map["&"] =        "NumberAnd";
-	alias_map["|"] =        "NumberOr";
-	alias_map["ToString"] = "ArrayCreateFromNumber";
-	alias_map["ToNumber"] = "ArrayConvertToNumber";
-	#elif defined(OS_WINDOWS)
-	alias_map["!"] =        "_NumberNot";
-	alias_map["*"] =        "_NumberMul";
-	alias_map["/"] =        "_NumberDiv";
-	alias_map["+"] =        "_NumberAdd";
-	alias_map["-"] =        "_NumberSub";
-	alias_map["$"] =        "_ArrayAppend";
-	alias_map["<"] =        "_NumberLs";
-	alias_map[">"] =        "_NumberGt";
-	alias_map["="] =        "_NumberEq";
-	alias_map["&"] =        "_NumberAnd";
-	alias_map["|"] =        "_NumberOr";
-	alias_map["ToString"] = "_ArrayCreateFromNumber";
-	alias_map["ToNumber"] = "_ArrayConvertToNumber";
-	#endif
+	alias_map["!"] = CorrectSubprogramName("NumberNot");
+	alias_map["*"] = CorrectSubprogramName("NumberMul");
+	alias_map["/"] = CorrectSubprogramName("NumberDiv");
+	alias_map["+"] = CorrectSubprogramName("NumberAdd");
+	alias_map["-"] = CorrectSubprogramName("NumberSub");
+	alias_map["$"] = CorrectSubprogramName("ArrayAppend");
+	alias_map["<"] = CorrectSubprogramName("NumberLs");
+	alias_map[">"] = CorrectSubprogramName("NumberGt");
+	alias_map["="] = CorrectSubprogramName("NumberEq");
+	alias_map["&"] = CorrectSubprogramName("NumberAnd");
+	alias_map["|"] = CorrectSubprogramName("NumberOr");
+	alias_map["ToString"] = CorrectSubprogramName("ArrayCreateFromNumber");
+	alias_map["ToNumber"] = CorrectSubprogramName("ArrayConvertToNumber");
 
 	if (alias_map.count(alias) == 1) {
 		return alias_map[alias];
 	} else {
-		#ifdef OS_LINUX
-		return alias;
-		#elif defined(OS_WINDOWS)
-		return "_" + alias;
-		#endif
+		return CorrectSubprogramName(alias);
 	}
 }
 
