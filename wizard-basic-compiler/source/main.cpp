@@ -95,12 +95,13 @@ template<typename Type>
 std::string ConvertToString(Type value) {
 	std::ostringstream out;
 	out << value;
+
 	return out.str();
 }
 
 template<typename Type>
 Type ConvertFromString(const std::string& value) {
-	Type result = 0;
+	Type result = Type();
 
 	std::istringstream in(value);
 	in >> result;
@@ -902,9 +903,9 @@ ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
 			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
 			{
 				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic("call",
+				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings"), line_number));
+					"ArrayClearMemoryAfterConvertsToStrings")));
 				#elif defined(OS_WINDOWS)
 				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
 					GetSubprogramNameByAlias(

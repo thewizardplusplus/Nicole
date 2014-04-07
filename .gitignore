@@ -1,3 +1,4 @@
 *~
 *.pro.user
 /build-wizard-basic-compiler*/
+/wizard-basic-compiler-build*/
