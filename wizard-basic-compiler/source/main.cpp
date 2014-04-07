@@ -8,9 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cstdlib>
-//TODO: уточнить порядок и необходимость подключения
 #include <fstream>
-#include <cstdio>
 
 // основано на http://sourceforge.net/p/predef/wiki/OperatingSystems/
 #if \
@@ -545,9 +543,12 @@ std::string GetSubprogramNameByAlias(const std::string& alias) {
 	}
 }
 
-CompileExpressionResult CompileExpression(const StringList& tokens, const
-	SubprogramMap& procedures, SubprogramMap& functions, size_t line_number)
-{
+CompileExpressionResult CompileExpression(
+	const StringList& tokens,
+	const SubprogramMap& procedures,
+	SubprogramMap& functions,
+	size_t line_number
+) {
 	CompileExpressionResult result;
 	StringList stack;
 	ArgumentCounterStack argument_counter_stack;
@@ -775,135 +776,97 @@ CompileExpressionResult CompileExpression(const StringList& tokens, const
 	return result;
 }
 
-ByteCodeModule Compile(const CodeLines& code_lines, const InbuildVariableMap&
-	inbuild_variables, const InbuildStringConstantMap& inbuild_string_constants)
-{
+ByteCodeModule Compile(
+	const CodeLines& code_lines,
+	const InbuildVariableMap& inbuild_variables,
+	const InbuildStringConstantMap& inbuild_string_constants
+) {
 	ByteCodeModule byte_code_module;
-	#ifdef OS_LINUX
-	byte_code_module.functions["c_string"] =                                1;
-	byte_code_module.functions["ArrayAppend"] =                             2;
-	byte_code_module.functions["ArrayConvertToNumber"] =                    1;
-	byte_code_module.functions["ArrayCreate"] =                             1;
-	byte_code_module.functions["ArrayCreateFromNumber"] =                   1;
-	byte_code_module.functions["ArrayCreateFromString"] =                   1;
-	byte_code_module.functions["ArrayGetSize"] =                            1;
-	byte_code_module.functions["ArrayItemGet"] =                            2;
-	byte_code_module.functions["FileOpen"] =                                2;
-	byte_code_module.functions["FileRead"] =                                2;
-	byte_code_module.functions["FileReadAll"] =                             1;
-	byte_code_module.functions["GetOs"] =                                   0;
-	byte_code_module.functions["MathAngle"] =                               2;
-	byte_code_module.functions["MathArccos"] =                              1;
-	byte_code_module.functions["MathArcsin"] =                              1;
-	byte_code_module.functions["MathArctg"] =                               1;
-	byte_code_module.functions["MathCos"] =                                 1;
-	byte_code_module.functions["MathExponent"] =                            1;
-	byte_code_module.functions["MathInteger"] =                             1;
-	byte_code_module.functions["MathLg"] =                                  1;
-	byte_code_module.functions["MathLn"] =                                  1;
-	byte_code_module.functions["MathModulus"] =                             1;
-	byte_code_module.functions["MathPower"] =                               2;
-	byte_code_module.functions["MathRandom"] =                              2;
-	byte_code_module.functions["MathSin"] =                                 1;
-	byte_code_module.functions["MathSquareRoot"] =                          1;
-	byte_code_module.functions["MathTg"] =                                  1;
-	byte_code_module.functions["NumberAdd"] =                               2;
-	byte_code_module.functions["NumberAnd"] =                               2;
-	byte_code_module.functions["NumberDiv"] =                               2;
-	byte_code_module.functions["NumberEq"] =                                2;
-	byte_code_module.functions["NumberGt"] =                                2;
-	byte_code_module.functions["NumberLs"] =                                2;
-	byte_code_module.functions["NumberMul"] =                               2;
-	byte_code_module.functions["NumberNot"] =                               1;
-	byte_code_module.functions["NumberOr"] =                                2;
-	byte_code_module.functions["NumberSub"] =                               2;
-	byte_code_module.functions["TimerGetElapsedTimeInUs"] =                 0;
-	byte_code_module.procedures["ArrayClearMemoryAfterConvertsToStrings"] = 0;
-	byte_code_module.procedures["ArrayDelete"] =                            1;
-	byte_code_module.procedures["ArrayDeleteAll"] =                         0;
-	byte_code_module.procedures["ArrayItemAppend"] =                        2;
-	byte_code_module.procedures["ArrayItemInsert"] =                        3;
-	byte_code_module.procedures["ArrayItemRemove"] =                        2;
-	byte_code_module.procedures["ArrayItemSet"] =                           3;
-	byte_code_module.procedures["Exit"] =                                   0;
-	byte_code_module.procedures["FileClose"] =                              1;
-	byte_code_module.procedures["FileCloseAll"] =                           0;
-	byte_code_module.procedures["FileDelete"] =                             1;
-	byte_code_module.procedures["FileWrite"] =                              2;
-	byte_code_module.procedures["Show"] =                                   1;
-	byte_code_module.procedures["TimerStart"] =                             0;
-	#elif defined(OS_WINDOWS)
-	byte_code_module.functions["_c_string"] =                                1;
-	byte_code_module.functions["_ArrayAppend"] =                             2;
-	byte_code_module.functions["_ArrayConvertToNumber"] =                    1;
-	byte_code_module.functions["_ArrayCreate"] =                             1;
-	byte_code_module.functions["_ArrayCreateFromNumber"] =                   1;
-	byte_code_module.functions["_ArrayCreateFromString"] =                   1;
-	byte_code_module.functions["_ArrayGetSize"] =                            1;
-	byte_code_module.functions["_ArrayItemGet"] =                            2;
-	byte_code_module.functions["_FileOpen"] =                                2;
-	byte_code_module.functions["_FileRead"] =                                2;
-	byte_code_module.functions["_FileReadAll"] =                             1;
-	byte_code_module.functions["_GetOs"] =                                   0;
-	byte_code_module.functions["_MathAngle"] =                               2;
-	byte_code_module.functions["_MathArccos"] =                              1;
-	byte_code_module.functions["_MathArcsin"] =                              1;
-	byte_code_module.functions["_MathArctg"] =                               1;
-	byte_code_module.functions["_MathCos"] =                                 1;
-	byte_code_module.functions["_MathExponent"] =                            1;
-	byte_code_module.functions["_MathInteger"] =                             1;
-	byte_code_module.functions["_MathLg"] =                                  1;
-	byte_code_module.functions["_MathLn"] =                                  1;
-	byte_code_module.functions["_MathModulus"] =                             1;
-	byte_code_module.functions["_MathPower"] =                               2;
-	byte_code_module.functions["_MathRandom"] =                              2;
-	byte_code_module.functions["_MathSin"] =                                 1;
-	byte_code_module.functions["_MathSquareRoot"] =                          1;
-	byte_code_module.functions["_MathTg"] =                                  1;
-	byte_code_module.functions["_NumberAdd"] =                               2;
-	byte_code_module.functions["_NumberAnd"] =                               2;
-	byte_code_module.functions["_NumberDiv"] =                               2;
-	byte_code_module.functions["_NumberEq"] =                                2;
-	byte_code_module.functions["_NumberGt"] =                                2;
-	byte_code_module.functions["_NumberLs"] =                                2;
-	byte_code_module.functions["_NumberMul"] =                               2;
-	byte_code_module.functions["_NumberNot"] =                               1;
-	byte_code_module.functions["_NumberOr"] =                                2;
-	byte_code_module.functions["_NumberSub"] =                               2;
-	byte_code_module.functions["_TimerGetElapsedTimeInUs"] =                 0;
-	byte_code_module.procedures["_ArrayClearMemoryAfterConvertsToStrings"] = 0;
-	byte_code_module.procedures["_ArrayDelete"] =                            1;
-	byte_code_module.procedures["_ArrayDeleteAll"] =                         0;
-	byte_code_module.procedures["_ArrayItemAppend"] =                        2;
-	byte_code_module.procedures["_ArrayItemInsert"] =                        3;
-	byte_code_module.procedures["_ArrayItemRemove"] =                        2;
-	byte_code_module.procedures["_ArrayItemSet"] =                           3;
-	byte_code_module.procedures["_Exit"] =                                   0;
-	byte_code_module.procedures["_FileClose"] =                              1;
-	byte_code_module.procedures["_FileCloseAll"] =                           0;
-	byte_code_module.procedures["_FileDelete"] =                             1;
-	byte_code_module.procedures["_FileWrite"] =                              2;
-	byte_code_module.procedures["_Show"] =                                   1;
-	byte_code_module.procedures["_TimerStart"] =                             0;
-	#endif
-
 	byte_code_module.variables.insert("APPLICATION_PATH");
-	InbuildVariableMap::const_iterator i = inbuild_variables.begin();
-	for (; i != inbuild_variables.end(); ++i) {
+	for (
+		InbuildVariableMap::const_iterator i = inbuild_variables.begin();
+		i != inbuild_variables.end();
+		++i
+	) {
 		byte_code_module.variables.insert(i->first);
 	}
-	InbuildStringConstantMap::const_iterator j = inbuild_string_constants.
-		begin();
-	for (; j != inbuild_string_constants.end(); ++j) {
+	for (
+		InbuildStringConstantMap::const_iterator j = inbuild_string_constants.
+			begin();
+		j != inbuild_string_constants.end();
+		++j
+	) {
 		byte_code_module.variables.insert(j->first);
 	}
+	byte_code_module.functions[CorrectSubprogramName("c_string")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayAppend")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("ArrayConvertToNumber")] =
+		1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayCreate")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayCreateFromNumber")] =
+		1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayCreateFromString")] =
+		1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayGetSize")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("ArrayItemGet")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("FileOpen")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("FileRead")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("FileReadAll")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("GetOs")] = 0;
+	byte_code_module.functions[CorrectSubprogramName("MathAngle")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("MathArccos")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathArcsin")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathArctg")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathCos")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathExponent")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathInteger")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathLg")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathLn")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathModulus")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathPower")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("MathRandom")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("MathSin")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathSquareRoot")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathTg")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("NumberAdd")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberAnd")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberDiv")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberEq")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberGt")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberLs")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberMul")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberNot")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("NumberOr")] = 2;
+	byte_code_module.functions[CorrectSubprogramName("NumberSub")] = 2;
+	byte_code_module.functions[
+		CorrectSubprogramName("TimerGetElapsedTimeInUs")
+	] = 0;
+	byte_code_module.procedures[
+		CorrectSubprogramName("ArrayClearMemoryAfterConvertsToStrings")
+	] = 0;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayDelete")] = 1;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayDeleteAll")] = 0;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayItemAppend")] = 2;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayItemInsert")] = 3;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayItemRemove")] = 2;
+	byte_code_module.procedures[CorrectSubprogramName("ArrayItemSet")] = 3;
+	byte_code_module.procedures[CorrectSubprogramName("Exit")] = 0;
+	byte_code_module.procedures[CorrectSubprogramName("FileClose")] = 1;
+	byte_code_module.procedures[CorrectSubprogramName("FileCloseAll")] = 0;
+	byte_code_module.procedures[CorrectSubprogramName("FileDelete")] = 1;
+	byte_code_module.procedures[CorrectSubprogramName("FileWrite")] = 2;
+	byte_code_module.procedures[CorrectSubprogramName("Show")] = 1;
+	byte_code_module.procedures[CorrectSubprogramName("TimerStart")] = 0;
 
 	long condition_counter = -1;
 	ConditionIdStack condition_id_stack;
-	CodeLines::const_iterator k = code_lines.begin();
-	for (; k != code_lines.end(); ++k) {
-		size_t      line_number = k->first;
-		std::string code_line =   k->second;
+	for (
+		CodeLines::const_iterator k = code_lines.begin();
+		k != code_lines.end();
+		++k
+	) {
+		size_t line_number = k->first;
+		std::string code_line = k->second;
 		bool new_condition = false;
 		if (code_line.substr(0, 4) == "use ") {
 			std::string path = code_line.substr(4);
@@ -1429,30 +1392,36 @@ int main(int number_of_arguments, char* arguments[]) {
 	#endif
 
 	InbuildVariableMap inbuild_variables;
-	inbuild_variables["FALSE"] =                  0.0f;
-	inbuild_variables["TRUE"] =                   1.0f;
-	inbuild_variables["PI"] =                     3.14159f;
-	inbuild_variables["E"] =                      2.71828f;
-	inbuild_variables["FILE_OPEN_MODE_READ"] =    0.0f;
-	inbuild_variables["FILE_OPEN_MODE_APPEND"] =  1.0f;
+	inbuild_variables["FALSE"] = 0.0f;
+	inbuild_variables["TRUE"] = 1.0f;
+	inbuild_variables["PI"] = 3.14159f;
+	inbuild_variables["E"] = 2.71828f;
+	inbuild_variables["FILE_OPEN_MODE_READ"] = 0.0f;
+	inbuild_variables["FILE_OPEN_MODE_APPEND"] = 1.0f;
 	inbuild_variables["FILE_OPEN_MODE_REWRITE"] = 2.0f;
-	inbuild_variables["OS_LINUX"] =               1.0f;
-	inbuild_variables["OS_WINDOWS"] =             0.0f;
+	inbuild_variables["OS_LINUX"] = 1.0f;
+	inbuild_variables["OS_WINDOWS"] = 0.0f;
 	InbuildStringConstantMap inbuild_string_constants;
 	inbuild_string_constants["NEW_LINE"] = "\"\\n\"";
 	#ifdef OS_LINUX
-	inbuild_string_constants["PATH_SEPARATOR"] = "\"/\"";
+		inbuild_string_constants["PATH_SEPARATOR"] = "\"/\"";
 	#elif defined(OS_WINDOWS)
-	inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
+		inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
 	#endif
-	ByteCodeModule byte_code_module = Compile(code_lines, inbuild_variables,
-		inbuild_string_constants);
+	ByteCodeModule byte_code_module = Compile(
+		code_lines,
+		inbuild_variables,
+		inbuild_string_constants
+	);
 	#ifdef DEBUG_OUTPUT
 		ShowByteCode(byte_code_module);
 	#endif
 
 	std::string gnu_assembler_code = ConvertByteCodeToGnuAssembler(
-		byte_code_module, inbuild_variables, inbuild_string_constants);
+		byte_code_module,
+		inbuild_variables,
+		inbuild_string_constants
+	);
 	#ifdef DEBUG_OUTPUT
 		ShowMessage("GNU Assembler:");
 		ShowMessage(gnu_assembler_code);
