@@ -79,7 +79,7 @@ struct CompileExpressionResult {
 	{}
 };
 typedef std::map<std::string, size_t> SubprogramMap;
-typedef std::stack<size_t> ArgumentCounterStack;
+typedef std::stack<size_t> NumberStack;
 typedef std::set<std::string> VariableSet;
 struct Library {
 	std::string path;
@@ -95,7 +95,6 @@ struct ByteCodeModule {
 };
 typedef std::map<std::string, float> InbuildVariableMap;
 typedef std::map<std::string, std::string> InbuildStringConstantMap;
-typedef std::stack<long> ConditionIdStack;
 
 template<typename Type>
 std::string ConvertToString(Type value) {
@@ -558,7 +557,7 @@ CompileExpressionResult CompileExpression(
 ) {
 	CompileExpressionResult result;
 	StringList stack;
-	ArgumentCounterStack argument_counter_stack;
+	NumberStack argument_counter_stack;
 	bool push_operation_were = false;
 	bool conversion_is_last = false;
 	size_t procedures_counter = 0;
@@ -859,7 +858,6 @@ ByteCodeModule Compile(
 	const InbuildStringConstantMap& inbuild_string_constants
 ) {
 	ByteCodeModule byte_code_module;
-	byte_code_module.variables.insert("APPLICATION_PATH");
 	for (
 		InbuildVariableMap::const_iterator i = inbuild_variables.begin();
 		i != inbuild_variables.end();
@@ -867,6 +865,7 @@ ByteCodeModule Compile(
 	) {
 		byte_code_module.variables.insert(i->first);
 	}
+
 	for (
 		InbuildStringConstantMap::const_iterator j = inbuild_string_constants.
 			begin();
@@ -875,6 +874,8 @@ ByteCodeModule Compile(
 	) {
 		byte_code_module.variables.insert(j->first);
 	}
+	byte_code_module.variables.insert("APPLICATION_PATH");
+
 	byte_code_module.functions[CorrectSubprogramName("c_string")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("ArrayAppend")] = 2;
 	byte_code_module.functions[CorrectSubprogramName("ArrayConvertToNumber")] =
@@ -918,6 +919,7 @@ ByteCodeModule Compile(
 	byte_code_module.functions[
 		CorrectSubprogramName("TimerGetElapsedTimeInUs")
 	] = 0;
+
 	byte_code_module.procedures[
 		CorrectSubprogramName("ArrayClearMemoryAfterConvertsToStrings")
 	] = 0;
@@ -935,8 +937,8 @@ ByteCodeModule Compile(
 	byte_code_module.procedures[CorrectSubprogramName("Show")] = 1;
 	byte_code_module.procedures[CorrectSubprogramName("TimerStart")] = 0;
 
-	long condition_counter = -1;
-	ConditionIdStack condition_id_stack;
+	size_t condition_counter = 0;
+	NumberStack condition_id_stack;
 	for (
 		CodeLines::const_iterator k = code_lines.begin();
 		k != code_lines.end();
@@ -945,244 +947,339 @@ ByteCodeModule Compile(
 		size_t line_number = k->first;
 		std::string code_line = k->second;
 		bool new_condition = false;
+
 		if (code_line.substr(0, 4) == "use ") {
-			std::string path = code_line.substr(4);
-			path = StringTrim(path);
+			std::string path = StringTrim(code_line.substr(4));
 			if (!IsString(path) || path == "\"\"") {
-				ProcessError("Invalid format of path on line " +
-					ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid format of path on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
+			path = path.substr(1, path.size() - 2);
 
 			Library library;
-			path = path.substr(1, path.size() - 2);
 			#ifdef OS_LINUX
-			size_t index = path.find_last_of('/');
+				size_t last_separator_index = path.find_last_of('/');
 			#elif defined(OS_WINDOWS)
-			size_t index = path.find_last_of('\\');
+				size_t last_separator_index = path.find_last_of('\\');
 			#endif
-			if (index != std::string::npos) {
-				index++;
-				library.path = path.substr(0, index);
+			if (last_separator_index != std::string::npos) {
+				library.path = path.substr(0, ++last_separator_index);
 			} else {
-				index = 0;
+				last_separator_index = 0;
 			}
 
-			library.name = path.substr(index);
+			library.name = path.substr(last_separator_index);
 			if (library.name.empty()) {
-				ProcessError("Invalid format of path on line " +
-					ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid format of path on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-			size_t library_length = library.name.length();
-			size_t suffix_begin_index = library_length - 2;
-			if (library_length > 5 && library.name.substr(0, 3) == "lib" &&
-				(library.name.substr(suffix_begin_index) == ".a" || library.
-				name.substr(suffix_begin_index) == ".o"))
-			{
+
+			size_t library_name_length = library.name.length();
+			size_t suffix_begin_index = library_name_length - 2;
+			if (
+				library_name_length > 5
+				&& library.name.substr(0, 3) == "lib"
+				&& library.name.substr(suffix_begin_index) == ".a"
+			) {
 				library.name = library.name.substr(3, suffix_begin_index - 3);
 			}
 
 			byte_code_module.libraries.push_back(library);
 		} else if (code_line.substr(0, 10) == "procedure ") {
-			size_t index = code_line.find('/');
-			if (index == std::string::npos) {
-				ProcessError("Separator not found on line " + ConvertToString(
-					line_number) + ".");
+			size_t separator_index = code_line.find('/');
+			if (separator_index == std::string::npos) {
+				ProcessError(
+					"Separator not found on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
-			std::string number = code_line.substr(index + 1);
-			number = StringTrim(number);
-
-			std::string identifier = code_line.substr(10, index - 10);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(
+				code_line.substr(10, separator_index - 10)
+			);
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
+			std::string arguments_number = StringTrim(
+				code_line.substr(separator_index + 1)
+			);
 			byte_code_module.procedures[identifier] = ConvertFromString<size_t>(
-				number);
+				arguments_number
+			);
 		} else if (code_line.substr(0, 9) == "function ") {
-			size_t index = code_line.find('/');
-			if (index == std::string::npos) {
-				ProcessError("Separator not found on line " + ConvertToString(
-					line_number) + ".");
+			size_t separator_index = code_line.find('/');
+			if (separator_index == std::string::npos) {
+				ProcessError(
+					"Separator not found on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
-			std::string number = code_line.substr(index + 1);
-			number = StringTrim(number);
-
-			std::string identifier = code_line.substr(9, index - 9);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(
+				code_line.substr(9, separator_index - 9)
+			);
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
+			std::string arguments_number = StringTrim(
+				code_line.substr(separator_index + 1)
+			);
 			byte_code_module.functions[identifier] = ConvertFromString<size_t>(
-				number);
+				arguments_number
+			);
 		} else if (code_line.substr(0, 7) == "string ") {
-			size_t index = code_line.find('=');
-			if (index == std::string::npos) {
-				ProcessError("Separator not found on line " + ConvertToString(
-					line_number) + ".");
+			size_t separator_index = code_line.find('=');
+			if (separator_index == std::string::npos) {
+				ProcessError(
+					"Separator not found on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
-			std::string string = code_line.substr(index + 1);
-			string = StringTrim(string);
+			std::string string = StringTrim(
+				code_line.substr(separator_index + 1)
+			);
 			if (!IsString(string)) {
-				ProcessError("Invalid format of string on line " +
-					ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid format of string on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "push_s",
-				string));
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "push_s", string)
+			);
 
-			std::string identifier = code_line.substr(7, index - 7);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(
+				code_line.substr(7, separator_index - 7)
+			);
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-
 			byte_code_module.variables.insert(identifier);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "pop",
-				identifier));
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "pop", identifier)
+			);
 		} else if (code_line.substr(0, 4) == "let ") {
-			size_t index = code_line.find('=');
-			if (index == std::string::npos) {
-				ProcessError("Separator not found on line " + ConvertToString(
-					line_number) + ".");
+			size_t separator_index = code_line.find('=');
+			if (separator_index == std::string::npos) {
+				ProcessError(
+					"Separator not found on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
-			std::string expression = code_line.substr(index + 1);
-			expression = StringTrim(expression);
+			std::string expression = StringTrim(
+				code_line.substr(separator_index + 1)
+			);
 			StringList tokens = Tokenize(expression, line_number);
 			CompileExpressionResult compile_expression_result =
-				CompileExpression(tokens, byte_code_module.procedures,
-					byte_code_module.functions, line_number);
-			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT))
-			{
-				ProcessError("Using result of procedure on line " +
-					ConvertToString(line_number) + ".");
+				CompileExpression(
+					tokens,
+					byte_code_module.procedures,
+					byte_code_module.functions,
+					line_number
+				);
+			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT)) {
+				ProcessError(
+					"Using result of procedure on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
+			byte_code_module.byte_code.insert(
+				byte_code_module.byte_code.end(),
 				compile_expression_result.byte_code.begin(),
-				compile_expression_result.byte_code.end());
-			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
-			{
-				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings")));
-				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings")));
-				#endif
+				compile_expression_result.byte_code.end()
+			);
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED) {
+				byte_code_module.byte_code.push_back(
+					ByteCodeMnemonic(
+						line_number,
+						"call",
+						GetSubprogramNameByAlias(
+							"ArrayClearMemoryAfterConvertsToStrings"
+						)
+					)
+				);
 			}
 
-			std::string identifier = code_line.substr(4, index - 4);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(
+				code_line.substr(4, separator_index - 4)
+			);
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-
 			byte_code_module.variables.insert(identifier);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "pop",
-				identifier));
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "pop", identifier)
+			);
 		} else if (code_line.substr(0, 6) == "label ") {
-			std::string identifier = code_line.substr(6);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(code_line.substr(6));
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "lbl",
-				identifier));
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "lbl", identifier)
+			);
 		} else if (code_line.substr(0, 6) == "go to ") {
-			std::string identifier = code_line.substr(6);
-			identifier = StringTrim(identifier);
+			std::string identifier = StringTrim(code_line.substr(6));
 			if (!IsIdentifier(identifier)) {
-				ProcessError("Invalid identifier \"" + identifier + "\" on "
-					"line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ identifier
+					+ "\" on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "jmp",
-				identifier));
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "jmp", identifier)
+			);
 		} else if (code_line.substr(0, 3) == "if ") {
-			size_t index = code_line.find("then");
-			if (index == std::string::npos) {
-				ProcessError("Separator not found on line " + ConvertToString(
-					line_number) + ".");
+			size_t separator_index = code_line.find("then");
+			if (separator_index == std::string::npos) {
+				ProcessError(
+					"Separator not found on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 
-			std::string expression = code_line.substr(3, index - 3);
-			expression = StringTrim(expression);
+			std::string expression = StringTrim(
+				code_line.substr(3, separator_index - 3)
+			);
 			StringList tokens = Tokenize(expression, line_number);
 			CompileExpressionResult compile_expression_result =
-				CompileExpression(tokens, byte_code_module.procedures,
-					byte_code_module.functions, line_number);
-			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT))
-			{
-				ProcessError("Using result of procedure on line " +
-					ConvertToString(line_number) + ".");
+				CompileExpression(
+					tokens,
+					byte_code_module.procedures,
+					byte_code_module.functions,
+					line_number
+				);
+			if (!(compile_expression_result.flags & EXPRESSION_IS_RESULT)) {
+				ProcessError(
+					"Using result of procedure on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
-			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
+			byte_code_module.byte_code.insert(
+				byte_code_module.byte_code.end(),
 				compile_expression_result.byte_code.begin(),
-				compile_expression_result.byte_code.end());
-			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
-			{
-				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings")));
-				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings")));
-				#endif
+				compile_expression_result.byte_code.end()
+			);
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED) {
+				byte_code_module.byte_code.push_back(
+					ByteCodeMnemonic(
+						line_number,
+						"call",
+						GetSubprogramNameByAlias(
+							"ArrayClearMemoryAfterConvertsToStrings"
+						)
+					)
+				);
 			}
 
-			condition_counter++;
-			condition_id_stack.push(condition_counter);
-			byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "je",
-				"end_of_condition" + ConvertToString(condition_counter)));
+			size_t current_condition_counter = condition_counter++;
+			condition_id_stack.push(current_condition_counter);
+			byte_code_module.byte_code.push_back(
+				ByteCodeMnemonic(
+					line_number,
+					"je",
+					"end_of_condition"
+						+ ConvertToString(current_condition_counter)
+				)
+			);
 
 			new_condition = true;
 		} else {
 			StringList tokens = Tokenize(code_line, line_number);
 			CompileExpressionResult compile_expression_result =
-				CompileExpression(tokens, byte_code_module.procedures,
-					byte_code_module.functions, line_number);
-			byte_code_module.byte_code.insert(byte_code_module.byte_code.end(),
+				CompileExpression(
+					tokens,
+					byte_code_module.procedures,
+					byte_code_module.functions,
+					line_number
+				);
+			byte_code_module.byte_code.insert(
+				byte_code_module.byte_code.end(),
 				compile_expression_result.byte_code.begin(),
-				compile_expression_result.byte_code.end());
-			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED)
-			{
-				#ifdef OS_LINUX
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"ArrayClearMemoryAfterConvertsToStrings")));
-				#elif defined(OS_WINDOWS)
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-					GetSubprogramNameByAlias(
-					"_ArrayClearMemoryAfterConvertsToStrings")));
-				#endif
+				compile_expression_result.byte_code.end()
+			);
+			if (compile_expression_result.flags & EXPRESSION_WERE_CONVERTED) {
+				byte_code_module.byte_code.push_back(
+					ByteCodeMnemonic(
+						line_number,
+						"call",
+						GetSubprogramNameByAlias(
+							"ArrayClearMemoryAfterConvertsToStrings"
+						)
+					)
+				);
 			}
-			if (compile_expression_result.flags & EXPRESSION_IS_RESULT)
-			{
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number,
-					"clr_stck"));
+
+			if (compile_expression_result.flags & EXPRESSION_IS_RESULT) {
+				byte_code_module.byte_code.push_back(
+					ByteCodeMnemonic(line_number, "clr_stck")
+				);
 			}
 		}
 
 		if (!new_condition) {
 			while (!condition_id_stack.empty()) {
 				long last_condition_id = condition_id_stack.top();
-				byte_code_module.byte_code.push_back(ByteCodeMnemonic(line_number, "lbl",
-					"end_of_condition" + ConvertToString(last_condition_id)));
 				condition_id_stack.pop();
+
+				byte_code_module.byte_code.push_back(
+					ByteCodeMnemonic(
+						line_number,
+						"lbl",
+						"end_of_condition" + ConvertToString(last_condition_id)
+					)
+				);
 			}
 		}
 	}
