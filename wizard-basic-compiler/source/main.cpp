@@ -1287,233 +1287,319 @@ ByteCodeModule Compile(
 	return byte_code_module;
 }
 
-std::string ConvertByteCodeToGnuAssembler(
-	const ByteCodeModule& byte_code_module, const InbuildVariableMap&
-	inbuild_variables, const InbuildStringConstantMap& inbuild_string_constants)
-{
-	std::string gnu_assembler_code =
-		"\t.text\n"
-		#ifdef OS_LINUX
-		"\t.global main\n"
-		"main:\n"
-		#elif defined(OS_WINDOWS)
-		"\t.global _main\n"
-		"_main:\n"
-		#endif
-		"\tmov 8(%esp), %eax\n"
-		"\tpush (%eax)\n"
-		#ifdef OS_LINUX
-		"\tcall ProcessApplicationPath\n"
-		#elif defined(OS_WINDOWS)
-		"\tcall _ProcessApplicationPath\n"
-		#endif
-		"\tadd $4, %esp\n"
-		"\tsubl $4, %esp\n"
-		"\tfstps (%esp)\n"
-		"\tpop APPLICATION_PATH\n";
-	InbuildStringConstantMap::const_iterator i =
-		inbuild_string_constants.begin();
-	for (; i != inbuild_string_constants.end(); ++i) {
-		gnu_assembler_code +=
-			"\tpush $CONSTANT_STRING" + ConvertToString(std::distance(
-			inbuild_string_constants.begin(), i)) + "\n"
-			#ifdef OS_LINUX
-			"\tcall ArrayCreateFromString\n"
-			#elif defined(OS_WINDOWS)
-			"\tcall _ArrayCreateFromString\n"
-			#endif
-			"\tadd $4, %esp\n"
-			"\tsubl $4, %esp\n"
-			"\tfstps (%esp)\n"
-			"\tpop " + i->first + "\n";
+std::string ConvertByteCodeToAssembler(
+	const ByteCodeModule& byte_code_module,
+	const InbuildVariableMap& inbuild_variables,
+	const InbuildStringConstantMap& inbuild_string_constants
+) {
+	std::string assembler_code =
+		std::string("\t.text\n")
+		+ "\t.global " + CorrectSubprogramName("main") + "\n"
+		+ CorrectSubprogramName("main") + ":\n"
+		+ "\tmov 8(%esp), %eax\n"
+		+ "\tpush (%eax)\n"
+		+ "\tcall " + CorrectSubprogramName("ProcessApplicationPath") + "\n"
+		+ "\tadd $4, %esp\n"
+		+ "\tsubl $4, %esp\n"
+		+ "\tfstps (%esp)\n"
+		+ "\tpop APPLICATION_PATH\n"
+		+ "\n";
+
+	for (
+		InbuildStringConstantMap::const_iterator i =
+			inbuild_string_constants.begin();
+		i != inbuild_string_constants.end();
+		++i
+	) {
+		assembler_code +=
+			"\tpush $CONSTANT_STRING"
+				+ ConvertToString(
+					std::distance(inbuild_string_constants.begin(), i)
+				)
+				+ "\n"
+			+ "\tcall " + CorrectSubprogramName("ArrayCreateFromString") + "\n"
+			+ "\tadd $4, %esp\n"
+			+ "\tsubl $4, %esp\n"
+			+ "\tfstps (%esp)\n"
+			+ "\tpop " + i->first + "\n"
+			+ "\n";
 	}
 
-	ByteCode::const_iterator j = byte_code_module.byte_code.begin();
 	StringList numbers;
 	StringList strings;
-	for (; j != byte_code_module.byte_code.end(); ++j) {
+	for (
+		ByteCode::const_iterator j = byte_code_module.byte_code.begin();
+		j != byte_code_module.byte_code.end();
+		++j
+	) {
 		ByteCodeMnemonic mnemonic = *j;
 		if (mnemonic.mnemonic == "push_n") {
 			if (!IsNumber(mnemonic.operand)) {
-				ProcessError("Invalid number \"" + mnemonic.operand + "\" on "
-					"line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid number \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
 			numbers.push_back(mnemonic.operand);
-			gnu_assembler_code +=
-				"\tsubl $4, %esp\n"
-				"\tfld CONSTANT_NUMBER" + ConvertToString(numbers.size() - 1) +
-				"\n"
-				"\tfstps (%esp)\n";
+			assembler_code +=
+				std::string("\tsubl $4, %esp\n")
+				+ "\tfld CONSTANT_NUMBER"
+					+ ConvertToString(numbers.size() - 1)
+					+ "\n"
+				+ "\tfstps (%esp)\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "push_s") {
 			if (!IsString(mnemonic.operand)) {
-				ProcessError("Invalid string format on line " + ConvertToString(
-					mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid string format on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
 			strings.push_back(mnemonic.operand);
-			gnu_assembler_code +=
-				"\tpush $CONSTANT_STRING" + ConvertToString(
-				inbuild_string_constants.size() + strings.size() - 1) + "\n"
-				#ifdef OS_LINUX
-				"\tcall ArrayCreateFromString\n"
-				#elif defined(OS_WINDOWS)
-				"\tcall _ArrayCreateFromString\n"
-				#endif
-				"\tadd $4, %esp\n"
-				"\tsubl $4, %esp\n"
-				"\tfstps (%esp)\n";
+			assembler_code +=
+				"\tpush $CONSTANT_STRING"
+					+ ConvertToString(
+						inbuild_string_constants.size() + strings.size() - 1
+					)
+					+ "\n"
+				+ "\tcall "
+					+ CorrectSubprogramName("ArrayCreateFromString")
+					+ "\n"
+				+ "\tadd $4, %esp\n"
+				+ "\tsubl $4, %esp\n"
+				+ "\tfstps (%esp)\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "push_v") {
 			if (!IsIdentifier(mnemonic.operand)) {
-				ProcessError("Invalid identifier \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			VariableSet::const_iterator iterator = byte_code_module.variables
-				.find(mnemonic.operand);
+			VariableSet::const_iterator iterator =
+				byte_code_module.variables.find(mnemonic.operand);
 			if (iterator == byte_code_module.variables.end()) {
-				ProcessError("Undefined variable \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Undefined variable \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			gnu_assembler_code += "\tpush " + mnemonic.operand + "\n";
+			assembler_code +=
+				"\tpush " + mnemonic.operand + "\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "pop") {
 			if (!IsIdentifier(mnemonic.operand)) {
-				ProcessError("Invalid identifier \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			VariableSet::const_iterator iterator = byte_code_module.variables
-				.find(mnemonic.operand);
+			VariableSet::const_iterator iterator =
+				byte_code_module.variables.find(mnemonic.operand);
 			if (iterator == byte_code_module.variables.end()) {
-				ProcessError("Undefined variable \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Undefined variable \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			gnu_assembler_code += "\tpop " + mnemonic.operand + "\n";
+			assembler_code +=
+				"\tpop " + mnemonic.operand + "\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "lbl") {
 			if (!IsIdentifier(mnemonic.operand)) {
-				ProcessError("Invalid identifier \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			gnu_assembler_code += mnemonic.operand + ":\n";
+			assembler_code +=
+				mnemonic.operand + ":\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "jmp") {
 			if (!IsIdentifier(mnemonic.operand)) {
-				ProcessError("Invalid identifier \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			gnu_assembler_code += "\tjmp " + mnemonic.operand + "\n";
+			assembler_code +=
+				"\tjmp " + mnemonic.operand + "\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "je") {
 			if (!IsIdentifier(mnemonic.operand)) {
-				ProcessError("Invalid identifier \"" + mnemonic.operand + "\" "
-					"on line " + ConvertToString(mnemonic.line_number) + ".");
+				ProcessError(
+					"Invalid identifier \""
+					+ mnemonic.operand
+					+ "\" on line "
+					+ ConvertToString(mnemonic.line_number)
+					+ "."
+				);
 			}
 
-			gnu_assembler_code +=
-				"\tcmp $0, (%esp)\n"
-				"\tpop %eax\n"
-				"\tje " + mnemonic.operand + "\n";
+			assembler_code +=
+				std::string("\tcmp $0, (%esp)\n")
+				+ "\tpop %eax\n"
+				+ "\tje " + mnemonic.operand + "\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "call") {
-			SubprogramMap::const_iterator iterator = byte_code_module
-				.procedures.find(mnemonic.operand);
+			SubprogramMap::const_iterator iterator =
+				byte_code_module.procedures.find(mnemonic.operand);
 			bool return_result = false;
+
 			if (iterator == byte_code_module.procedures.end()) {
 				iterator = byte_code_module.functions.find(mnemonic.operand);
 				if (iterator == byte_code_module.functions.end()) {
-					ProcessError("Undefined subprogram \"" + mnemonic.operand +
-						"\" on line " + ConvertToString(mnemonic.line_number) +
-						".");
+					ProcessError(
+						"Undefined subprogram \""
+						+ mnemonic.operand
+						+ "\" on line "
+						+ ConvertToString(mnemonic.line_number)
+						+ "."
+					);
 				}
 
 				return_result = true;
 			}
 
-			gnu_assembler_code +=
-				"\tcall " + mnemonic.operand + "\n";
+			assembler_code +=
+				"\tcall " + mnemonic.operand + "\n"
+				+ "\n";
+
 			size_t number_of_arguments = 4 * iterator->second;
 			if (number_of_arguments > 0) {
-				gnu_assembler_code += "\taddl $" + ConvertToString<size_t>(
-					number_of_arguments) + ", %esp\n";
+				assembler_code +=
+					"\taddl $" + ConvertToString<size_t>(number_of_arguments)
+						+ ", %esp\n"
+					+ "\n";
 			}
+
 			if (return_result) {
-				gnu_assembler_code +=
-					"\tsubl $4, %esp\n"
-					"\tfstps (%esp)\n";
+				assembler_code +=
+					std::string("\tsubl $4, %esp\n")
+					+ "\tfstps (%esp)\n"
+					+ "\n";
 			}
 		} else if (mnemonic.mnemonic == "to_str") {
-			gnu_assembler_code +=
-				#ifdef OS_LINUX
-				"\tcall ArrayConvertToString\n"
-				#elif defined(OS_WINDOWS)
-				"\tcall _ArrayConvertToString\n"
-				#endif
-				"\taddl $4, %esp\n"
-				"\tpush %eax\n";
+			assembler_code +=
+				"\tcall " + CorrectSubprogramName("ArrayConvertToString") + "\n"
+				+ "\taddl $4, %esp\n"
+				+ "\tpush %eax\n"
+				+ "\n";
 		} else if (mnemonic.mnemonic == "clr_stck") {
-			gnu_assembler_code += "\tpop %eax\n";
+			assembler_code +=
+				std::string("\tpop %eax\n")
+				+ "\n";
 		} else {
-			ProcessError("Undefined mnemonic \"" + mnemonic.operand + "\" on "
-				"line " + ConvertToString(mnemonic.line_number) + ".");
+			ProcessError(
+				"Undefined mnemonic \""
+				+ mnemonic.operand
+				+ "\" on line "
+				+ ConvertToString(mnemonic.line_number)
+				+ "."
+			);
 		}
 	}
 
-	gnu_assembler_code +=
-		"\n"
-		#ifdef OS_LINUX
-		"\tcall ArrayDeleteAll\n"
-		"\tcall FileCloseAll\n"
-		#elif defined(OS_WINDOWS)
-		"\tcall _ArrayDeleteAll\n"
-		"\tcall _FileCloseAll\n"
-		#endif
-		"\tmov $0, %eax\n"
-		"\tret\n"
-		"\n"
-		"\t.data\n";
+	assembler_code +=
+		"\tcall " + CorrectSubprogramName("ArrayDeleteAll") + "\n"
+		+ "\tcall " + CorrectSubprogramName("FileCloseAll") + "\n"
+		+ "\tmov $0, %eax\n"
+		+ "\tret\n"
+		+ "\n";
+
+	assembler_code += "\t.data\n";
 	StringList::const_iterator numbers_begin = numbers.begin();
-	StringList::const_iterator k = numbers_begin;
-	for (; k != numbers.end(); ++k) {
-		gnu_assembler_code +=
-			"CONSTANT_NUMBER" + ConvertToString(std::distance(numbers_begin, k))
-			+ ":\n"
-			"\t.float " + *k + "\n";
+	for (
+		StringList::const_iterator k = numbers_begin;
+		k != numbers.end();
+		++k
+	) {
+		assembler_code +=
+			"CONSTANT_NUMBER"
+				+ ConvertToString(std::distance(numbers_begin, k))
+				+ ":\n"
+			+ "\t.float " + *k + "\n";
 	}
 
-	InbuildStringConstantMap::const_iterator l =
-		inbuild_string_constants.begin();
-	for (; l != inbuild_string_constants.end(); ++l) {
-		gnu_assembler_code +=
-			"CONSTANT_STRING" + ConvertToString(std::distance(
-			inbuild_string_constants.begin(), l)) + ":\n"
-			"\t.string " + l->second + "\n";
+	for (
+		InbuildStringConstantMap::const_iterator l =
+			inbuild_string_constants.begin();
+		l != inbuild_string_constants.end();
+		++l
+	) {
+		assembler_code +=
+			"CONSTANT_STRING"
+				+ ConvertToString(
+					std::distance(inbuild_string_constants.begin(), l)
+				)
+				+ ":\n"
+			+ "\t.string " + l->second + "\n";
 	}
+
 	StringList::const_iterator strings_begin = strings.begin();
-	StringList::const_iterator m = strings_begin;
-	for (; m != strings.end(); ++m) {
-		gnu_assembler_code +=
-			"CONSTANT_STRING" + ConvertToString(inbuild_string_constants.size()
-			+ std::distance(strings_begin, m)) + ":\n"
+	for (
+		StringList::const_iterator m = strings_begin;
+		m != strings.end();
+		++m
+	) {
+		assembler_code +=
+			"CONSTANT_STRING"
+				+ ConvertToString(
+					inbuild_string_constants.size()
+					+ std::distance(strings_begin, m)
+				)
+				+ ":\n"
 			"\t.string " + *m + "\n";
 	}
 
-	VariableSet::const_iterator n = byte_code_module.variables.begin();
-	for (; n != byte_code_module.variables.end(); ++n) {
+	for (
+		VariableSet::const_iterator n = byte_code_module.variables.begin();
+		n != byte_code_module.variables.end();
+		++n
+	) {
 		std::string variable_name = *n;
-		if (inbuild_variables.count(variable_name) == 0) {
-			gnu_assembler_code +=
-				variable_name + ":\n"
-				"\t.float 0\n";
-		} else {
-			gnu_assembler_code +=
-				variable_name + ":\n"
-				"\t.float " + ConvertToString(inbuild_variables.find(
-				variable_name)->second) + "\n";
-		}
+		assembler_code +=
+			variable_name + ":\n"
+			+ "\t.float "
+				+ (inbuild_variables.count(variable_name) == 0
+					? "0"
+					: ConvertToString(
+						inbuild_variables.find(variable_name)->second
+					))
+				+ "\n";
 	}
 
-	return gnu_assembler_code;
+	return assembler_code;
 }
 
 void MakeExecutableFile(const std::string& gnu_assembler_code, const
@@ -1591,15 +1677,15 @@ int main(int number_of_arguments, char* arguments[]) {
 		ShowByteCode(byte_code_module);
 	#endif
 
-	std::string gnu_assembler_code = ConvertByteCodeToGnuAssembler(
+	std::string assembler_code = ConvertByteCodeToAssembler(
 		byte_code_module,
 		inbuild_variables,
 		inbuild_string_constants
 	);
 	#ifdef DEBUG_OUTPUT
-		ShowMessage("GNU Assembler:");
-		ShowMessage(gnu_assembler_code);
+		ShowMessage("Assembler:");
+		ShowMessage(assembler_code);
 	#endif
 
-	MakeExecutableFile(gnu_assembler_code, byte_code_module.libraries);
+	MakeExecutableFile(assembler_code, byte_code_module.libraries);
 }
