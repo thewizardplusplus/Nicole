@@ -1602,25 +1602,34 @@ std::string ConvertByteCodeToAssembler(
 	return assembler_code;
 }
 
-void MakeExecutableFile(const std::string& gnu_assembler_code, const
-	LibrariesList& libraries)
-{
+void MakeExecutableFile(
+	const std::string& assembler_code,
+	const LibrariesList& libraries,
+	const std::string& output_filename
+) {
 	#ifdef OS_LINUX
-	std::string filename = std::string(std::tmpnam(NULL)) + ".s";
+		std::string input_filename = std::string(std::tmpnam(NULL)) + ".s";
 	#elif defined(OS_WINDOWS)
-	std::string filename = std::string(std::tmpnam(NULL)) + "s";
+		std::string input_filename = std::string(std::tmpnam(NULL)) + "s";
 	#endif
 	#ifdef DEBUG_OUTPUT
-		ShowMessage("Save GNU Assembler code to \"" + filename + "\".");
+		ShowMessage("Save assembler code to \"" + input_filename + "\".");
 	#endif
-	FileWrite(filename, gnu_assembler_code);
+	FileWrite(input_filename, assembler_code);
 
 	#ifdef DEBUG_OUTPUT
 		ShowMessage("Make executable file.");
 	#endif
-	std::string command = "g++ -m32 -o program " + filename;
-	LibrariesList::const_iterator i = libraries.begin();
-	for (; i != libraries.end(); ++i) {
+	std::string command =
+		"g++ -O2 -m32 -o "
+		+ output_filename
+		+ " "
+		+ input_filename;
+	for (
+		LibrariesList::const_iterator i = libraries.begin();
+		i != libraries.end();
+		++i
+	) {
 		Library library = *i;
 		if (!library.path.empty()) {
 			command += " -L" + library.path;
@@ -1636,14 +1645,21 @@ void MakeExecutableFile(const std::string& gnu_assembler_code, const
 		ProcessError("Assembling or linking finished with error.");
 	}
 
-	std::remove(filename.c_str());
+	int removed = std::remove(input_filename.c_str());
+	if (removed != 0) {
+		ShowMessage(
+			"Unable to remove temporary file \"" + input_filename + "\".",
+			MESSAGE_ERROR
+		);
+	}
 }
 
 int main(int number_of_arguments, char* arguments[]) {
-	std::string filename = ProcessCommandLineArguments(number_of_arguments,
-		arguments);
-	CodeLines code_lines = FileRead(filename);
-	code_lines = Preprocess(code_lines);
+	std::string input_filename = ProcessCommandLineArguments(
+		number_of_arguments,
+		arguments
+	);
+	CodeLines code_lines = Preprocess(FileRead(input_filename));
 	if (code_lines.empty()) {
 		ProcessError("Program is empty.");
 	}
@@ -1661,6 +1677,7 @@ int main(int number_of_arguments, char* arguments[]) {
 	inbuild_variables["FILE_OPEN_MODE_REWRITE"] = 2.0f;
 	inbuild_variables["OS_LINUX"] = 1.0f;
 	inbuild_variables["OS_WINDOWS"] = 0.0f;
+
 	InbuildStringConstantMap inbuild_string_constants;
 	inbuild_string_constants["NEW_LINE"] = "\"\\n\"";
 	#ifdef OS_LINUX
@@ -1668,6 +1685,7 @@ int main(int number_of_arguments, char* arguments[]) {
 	#elif defined(OS_WINDOWS)
 		inbuild_string_constants["PATH_SEPARATOR"] = "\"\\\\\"";
 	#endif
+
 	ByteCodeModule byte_code_module = Compile(
 		code_lines,
 		inbuild_variables,
@@ -1683,9 +1701,27 @@ int main(int number_of_arguments, char* arguments[]) {
 		inbuild_string_constants
 	);
 	#ifdef DEBUG_OUTPUT
-		ShowMessage("Assembler:");
+		ShowMessage("Assembler code:");
 		ShowMessage(assembler_code);
 	#endif
 
-	MakeExecutableFile(assembler_code, byte_code_module.libraries);
+	std::string output_filename = input_filename;
+	#ifdef OS_LINUX
+		size_t last_separator_index = input_filename.find_last_of('/');
+	#elif defined(OS_WINDOWS)
+		size_t last_separator_index = input_filename.find_last_of('\\');
+	#endif
+	size_t suffix_begin_index = input_filename.find_last_of('.');
+	if (
+		suffix_begin_index != std::string::npos
+		&& (last_separator_index == std::string::npos
+		|| suffix_begin_index > last_separator_index)
+	) {
+		output_filename = output_filename.substr(0, suffix_begin_index);
+	}
+	MakeExecutableFile(
+		assembler_code,
+		byte_code_module.libraries,
+		output_filename
+	);
 }
