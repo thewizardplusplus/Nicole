@@ -579,8 +579,9 @@ CompileExpressionResult CompileExpression(
 		} else if (IsIdentifier(token)) {
 			std::string subprogram_name = GetSubprogramNameByAlias(token);
 			if (
-				procedures.count(subprogram_name) == 1 ||
-				functions.count(subprogram_name) == 1
+				!IsOperator(token)
+				&& (procedures.count(subprogram_name) == 1
+				|| functions.count(subprogram_name) == 1)
 			) {
 				stack.push_back(token);
 				argument_counter_stack.push(0);
@@ -701,7 +702,7 @@ CompileExpressionResult CompileExpression(
 					if (
 						!IsOperator(token_from_stack)
 						&& procedures.count(subprogram_name) == 1
-					){
+					) {
 						result.flags &= ~EXPRESSION_IS_RESULT;
 						procedures_counter++;
 					} else {
