@@ -62,14 +62,21 @@ struct ByteCodeMnemonic {
 	{}
 };
 typedef std::list<ByteCodeMnemonic> ByteCode;
+// флаги будут комбинироваться,
+// поэтому должны иметь значения, равные степеням двойки,
+// начиная с 0 (для обозначения отсутствия значения)
 enum ExpressionResultFlag {
-	EXPRESSION_NOTHING =        0,
-	EXPRESSION_WERE_CONVERTED = 1 << 0,
-	EXPRESSION_IS_RESULT =      1 << 1
+	EXPRESSION_NOTHING,
+	EXPRESSION_WERE_CONVERTED,
+	EXPRESSION_IS_RESULT
 };
 struct CompileExpressionResult {
 	ByteCode byte_code;
 	unsigned char flags;
+
+	CompileExpressionResult() :
+		flags(EXPRESSION_NOTHING)
+	{}
 };
 typedef std::map<std::string, size_t> SubprogramMap;
 typedef std::stack<size_t> ArgumentCounterStack;
@@ -556,50 +563,68 @@ CompileExpressionResult CompileExpression(
 	bool conversion_is_last = false;
 	size_t procedures_counter = 0;
 
-	StringList::const_iterator i = tokens.begin();
-	for (; i != tokens.end(); ++i) {
+	for (
+		StringList::const_iterator i = tokens.begin();
+		i != tokens.end();
+		++i
+	) {
 		std::string token = *i;
 		if (IsNumber(token)) {
-			result.byte_code.push_back(ByteCodeMnemonic(line_number, "push_n", token));
+			result.byte_code.push_back(
+				ByteCodeMnemonic(line_number, "push_n", token)
+			);
 			result.flags |= EXPRESSION_IS_RESULT;
+
 			push_operation_were = true;
 		} else if (IsIdentifier(token)) {
 			std::string subprogram_name = GetSubprogramNameByAlias(token);
-			if (!IsOperator(token) && (procedures.count(subprogram_name) == 1 ||
-				functions.count(subprogram_name) == 1))
-			{
+			if (
+				procedures.count(subprogram_name) == 1 ||
+				functions.count(subprogram_name) == 1
+			) {
 				stack.push_back(token);
 				argument_counter_stack.push(0);
 			} else {
-				result.byte_code.push_back(ByteCodeMnemonic(line_number, "push_v", token));
+				result.byte_code.push_back(
+					ByteCodeMnemonic(line_number, "push_v", token)
+				);
 				result.flags |= EXPRESSION_IS_RESULT;
+
 				push_operation_were = true;
 			}
 		} else if (token == ",") {
 			while (true) {
 				if (stack.empty()) {
-					ProcessError("Missed subprogram argument separator or "
-						"opening bracket on line " + ConvertToString(
-						line_number) + ".");
+					ProcessError(
+						"Missed subprogram argument separator or opening "
+							"parenthesis on line "
+						+ ConvertToString(line_number)
+						+ "."
+					);
 				}
 
 				std::string token_from_stack = stack.back();
 				if (token_from_stack != "(") {
 					std::string subprogram_name = GetSubprogramNameByAlias(
-						token_from_stack);
-					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-						subprogram_name));
+						token_from_stack
+					);
+					result.byte_code.push_back(
+						ByteCodeMnemonic(line_number, "call", subprogram_name)
+					);
 					stack.pop_back();
-					conversion_is_last = false;
-					if (!IsOperator(token_from_stack) && procedures.count(
-						subprogram_name) == 1)
-					{
-						procedures_counter++;
+
+					if (
+						!IsOperator(token_from_stack)
+						&& procedures.count(subprogram_name) == 1
+					) {
 						result.flags &= ~EXPRESSION_IS_RESULT;
+						procedures_counter++;
 					} else {
 						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
+
+					conversion_is_last = false;
 				} else {
 					break;
 				}
@@ -611,8 +636,11 @@ CompileExpressionResult CompileExpression(
 					push_operation_were = false;
 				}
 			} else {
-				ProcessError("Subprogram argument separator without subprogram "
-					"on line " + ConvertToString(line_number) + ".");
+				ProcessError(
+					"Subprogram argument separator without subprogram on line "
+					+ ConvertToString(line_number)
+					+ "."
+				);
 			}
 		} else if (IsOperator(token)) {
 			while (true) {
@@ -625,26 +653,23 @@ CompileExpressionResult CompileExpression(
 					break;
 				}
 
-				if ((GetAssociativity(token) == ASSOCIATIVITY_LEFT &&
-					GetPrecedence(token) <= GetPrecedence(token_from_stack)) ||
-					(GetAssociativity(token) == ASSOCIATIVITY_RIGHT &&
-					GetPrecedence(token) < GetPrecedence(token_from_stack)))
-				{
+				if (
+					(GetAssociativity(token) == ASSOCIATIVITY_LEFT
+					&& GetPrecedence(token) <= GetPrecedence(token_from_stack))
+					|| (GetAssociativity(token) == ASSOCIATIVITY_RIGHT
+					&& GetPrecedence(token) < GetPrecedence(token_from_stack))
+				) {
 					std::string subprogram_name = GetSubprogramNameByAlias(
-						token_from_stack);
-					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-						subprogram_name));
+						token_from_stack
+					);
+					result.byte_code.push_back(
+						ByteCodeMnemonic(line_number, "call", subprogram_name)
+					);
 					stack.pop_back();
+
+					result.flags |= EXPRESSION_IS_RESULT;
+					push_operation_were = true;
 					conversion_is_last = false;
-					if (!IsOperator(token_from_stack) && procedures.count(
-						subprogram_name) == 1)
-					{
-						procedures_counter++;
-						result.flags &= ~EXPRESSION_IS_RESULT;
-					} else {
-						result.flags |= EXPRESSION_IS_RESULT;
-						push_operation_were = true;
-					}
 				} else {
 					break;
 				}
@@ -656,27 +681,35 @@ CompileExpressionResult CompileExpression(
 		} else if (token == ")") {
 			while (true) {
 				if (stack.empty()) {
-					ProcessError("Missed opening bracket on line " +
-						ConvertToString(line_number) + ".");
+					ProcessError(
+						"Missed opening bracket on line "
+						+ ConvertToString(line_number)
+						+ "."
+					);
 				}
 
 				std::string token_from_stack = stack.back();
 				stack.pop_back();
 				if (token_from_stack != "(") {
 					std::string subprogram_name = GetSubprogramNameByAlias(
-						token_from_stack);
-					result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-						subprogram_name));
-					conversion_is_last = false;
-					if (!IsOperator(token_from_stack) && procedures.count(
-						subprogram_name) == 1)
-					{
-						procedures_counter++;
+						token_from_stack
+					);
+					result.byte_code.push_back(
+						ByteCodeMnemonic(line_number, "call", subprogram_name)
+					);
+
+					if (
+						!IsOperator(token_from_stack)
+						&& procedures.count(subprogram_name) == 1
+					){
 						result.flags &= ~EXPRESSION_IS_RESULT;
+						procedures_counter++;
 					} else {
 						result.flags |= EXPRESSION_IS_RESULT;
 						push_operation_were = true;
 					}
+
+					conversion_is_last = false;
 				} else {
 					break;
 				}
@@ -690,87 +723,130 @@ CompileExpressionResult CompileExpression(
 			if (!stack.empty()) {
 				std::string token_from_stack = stack.back();
 				std::string subprogram_name = GetSubprogramNameByAlias(
-					token_from_stack);
-				if (!IsOperator(token_from_stack) && (procedures.count(
-					subprogram_name) == 1 || functions.count(subprogram_name) ==
-					1))
-				{
+					token_from_stack
+				);
+				if (
+					!IsOperator(token_from_stack)
+					&& (procedures.count(subprogram_name) == 1
+					|| functions.count(subprogram_name) == 1)
+				) {
 					size_t expected_argument_number = 0;
 					if (procedures.count(subprogram_name) == 1) {
 						expected_argument_number = procedures.find(
-							subprogram_name)->second;
+							subprogram_name
+						)->second;
 					} else if (functions.count(subprogram_name) == 1) {
 						expected_argument_number = functions.find(
-							subprogram_name)->second;
+							subprogram_name
+						)->second;
 					}
+
 					size_t real_argument_number = argument_counter_stack.top();
 					if (real_argument_number != expected_argument_number) {
-						ProcessError("Invalid number of arguments for "
-							"subprogram \"" + token_from_stack + "\" (expected "
-							+ ConvertToString(expected_argument_number) +
-							" argument" + (expected_argument_number != 1 ? "s" :
-							"") + ", but gots " + ConvertToString(
-							real_argument_number) + ") on line " +
-							ConvertToString(line_number) + ".");
+						ProcessError(
+							"Invalid number of arguments for subprogram \""
+							+ token_from_stack
+							+ "\" (expected "
+							+ ConvertToString(expected_argument_number)
+							+ " argument"
+							+ (expected_argument_number != 1 ? "s": "")
+							+ ", but gots "
+							+ ConvertToString(real_argument_number)
+							+ ") on line "
+							+ ConvertToString(line_number)
+							+ "."
+						);
 					}
 
 					if (subprogram_name != "c_string") {
-						result.byte_code.push_back(ByteCodeMnemonic(line_number, "call",
-							subprogram_name));
-						conversion_is_last = false;
+						result.byte_code.push_back(
+							ByteCodeMnemonic(
+								line_number,
+								"call",
+								subprogram_name
+							)
+						);
+
 						if (procedures.count(subprogram_name) == 1) {
-							procedures_counter++;
 							result.flags &= ~EXPRESSION_IS_RESULT;
+							procedures_counter++;
 						} else {
 							result.flags |= EXPRESSION_IS_RESULT;
 							push_operation_were = true;
 						}
+
+						conversion_is_last = false;
 					} else {
-						result.byte_code.push_back(ByteCodeMnemonic(line_number, "to_str"));
-						result.flags |= EXPRESSION_WERE_CONVERTED;
-						conversion_is_last = true;
-						result.flags |= EXPRESSION_IS_RESULT;
+						result.byte_code.push_back(
+							ByteCodeMnemonic(line_number, "to_str")
+						);
+						result.flags |=
+							EXPRESSION_WERE_CONVERTED
+							| EXPRESSION_IS_RESULT;
+
 						push_operation_were = true;
+						conversion_is_last = true;
 					}
+
 					stack.pop_back();
 					argument_counter_stack.pop();
 				}
 			}
 		} else {
-			ProcessError("Unknown expression token \"" + token + "\" on line " +
-				ConvertToString(line_number) + ".");
+			ProcessError(
+				"Unknown expression token \""
+				+ token
+				+ "\" on line "
+				+ ConvertToString(line_number)
+				+ "."
+			);
 		}
 	}
 
 	while (!stack.empty()) {
 		std::string token_from_stack = stack.back();
 		if (token_from_stack == "(") {
-			ProcessError("Missed closing bracket on line " + ConvertToString(
-				line_number) + ".");
+			ProcessError(
+				"Missed closing bracket on line "
+				+ ConvertToString(line_number)
+				+ "."
+			);
 		}
 
 		std::string subprogram_name = GetSubprogramNameByAlias(
-			token_from_stack);
-		result.byte_code.push_back(ByteCodeMnemonic(line_number, "call", subprogram_name));
+			token_from_stack
+		);
+		result.byte_code.push_back(
+			ByteCodeMnemonic(line_number, "call", subprogram_name)
+		);
 		stack.pop_back();
-		conversion_is_last = false;
+
 		if (procedures.count(subprogram_name) == 1) {
-			procedures_counter++;
 			result.flags &= ~EXPRESSION_IS_RESULT;
+			procedures_counter++;
 		} else {
 			result.flags |= EXPRESSION_IS_RESULT;
 		}
+
+		conversion_is_last = false;
 	}
 
 	if (conversion_is_last) {
-		ProcessError("Illegal conversion on line " + ConvertToString(
-			line_number) + ".");
+		ProcessError(
+			"Illegal conversion on line "
+			+ ConvertToString(line_number)
+			+ "."
+		);
 	}
-	if (procedures_counter > 1 || (procedures_counter == 1 && result.flags &
-		EXPRESSION_IS_RESULT))
-	{
-		ProcessError("Using result of procedure on line " + ConvertToString(
-			line_number) + ".");
+	if (
+		procedures_counter > 1
+		|| (procedures_counter == 1 && result.flags & EXPRESSION_IS_RESULT)
+	) {
+		ProcessError(
+			"Using result of procedure on line "
+			+ ConvertToString(line_number)
+			+ "."
+		);
 	}
 
 	return result;
