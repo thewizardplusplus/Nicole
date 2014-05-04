@@ -38,13 +38,33 @@ enum OperatorAssociativity {
 	ASSOCIATIVITY_LEFT,
 	ASSOCIATIVITY_RIGHT
 };
+enum FinalState {
+	STATE_PREPROCESSED_CODE,
+	STATE_LIBRARY_LIST,
+	STATE_PROCEDURE_LIST,
+	STATE_FUNCTION_LIST,
+	STATE_VARIABLE_LIST,
+	STATE_BYTE_CODE,
+	STATE_ASSEMBLER_CODE,
+	STATE_EXECUTABLE_FILE
+};
+struct CommandLineArguments {
+	std::string base_path;
+	FinalState final_state;
+	std::string input_filename;
+
+	CommandLineArguments(void) :
+		base_path("."),
+		final_state(STATE_EXECUTABLE_FILE)
+	{}
+};
+typedef std::map<size_t, std::string> CodeLines;
+typedef std::list<std::string> StringList;
 enum TokenizeState {
 	TOKENIZE_RESET,
 	TOKENIZE_NUMBER,
 	TOKENIZE_IDENTIFIER
 };
-typedef std::map<size_t, std::string> CodeLines;
-typedef std::list<std::string> StringList;
 typedef std::map<std::string, std::string> AliasMap;
 struct ByteCodeMnemonic {
 	size_t line_number;
@@ -151,92 +171,110 @@ void ShowMessage(
 	}
 }
 
-#ifdef DEBUG_OUTPUT
-	void ShowCodeLines(const CodeLines& code_lines) {
-		std::string result = "Code:\n";
-		for (
-			CodeLines::const_iterator i = code_lines.begin();
-			i != code_lines.end();
-			++i
-		) {
-			result += ConvertToString(i->first) + " " + i->second + "\n";
-		}
-
-		ShowMessage(result);
+void ShowCodeLines(const CodeLines& code_lines) {
+	std::string result;
+	for (
+		CodeLines::const_iterator i = code_lines.begin();
+		i != code_lines.end();
+		++i
+	) {
+		result += ConvertToString(i->first) + " " + i->second + "\n";
 	}
-#endif
-
-#ifdef DEBUG_OUTPUT
-	void ShowByteCode(const ByteCodeModule& byte_code_module) {
-		std::string result = "Libraries:\n";
-		for (
-			LibrariesList::const_iterator i =
-				byte_code_module.libraries.begin();
-			i != byte_code_module.libraries.end();
-			++i
-		) {
-			result += " -L" + i->path + " -l" + i->name + "\n";
-		}
-
-		result += "\nProcedures:\n";
-		for (
-			SubprogramMap::const_iterator j =
-				byte_code_module.procedures.begin();
-			j != byte_code_module.procedures.end();
-			++j
-		) {
-			result +=
-				j->first
-				+ " ("
-				+ ConvertToString(j->second)
-				+ " argument"
-				+ (j->second != 1 ? "s" : "")
-				+ ")\n";
-		}
-
-		result += "\nFunctions:\n";
-		for (
-			SubprogramMap::const_iterator j =
-				byte_code_module.functions.begin();
-			j != byte_code_module.functions.end();
-			++j
-		) {
-			result +=
-				j->first
-				+ " ("
-				+ ConvertToString(j->second)
-				+ " argument"
-				+ (j->second != 1 ? "s" : "")
-				+ ")\n";
-		}
-
-		result += "\nVariables:\n";
-		for (
-			VariableSet::const_iterator k = byte_code_module.variables.begin();
-			k != byte_code_module.variables.end();
-			++k
-		) {
-			result += *k + "\n";
-		}
-
-		result += "\nByte code:\n";
-		for (
-			ByteCode::const_iterator m = byte_code_module.byte_code.begin();
-			m != byte_code_module.byte_code.end();
-			++m
-		) {
-			result +=
-				ConvertToString(m->line_number)
-				+ " "
-				+ m->mnemonic
-				+ " "
-				+ m->operand
-				+ "\n";
-		}
-
-		ShowMessage(result);
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
 	}
-#endif
+
+	ShowMessage(result);
+}
+
+void ShowLibraryList(const ByteCodeModule& byte_code_module) {
+	std::string result;
+	for (
+		LibrariesList::const_iterator i =
+			byte_code_module.libraries.begin();
+		i != byte_code_module.libraries.end();
+		++i
+	) {
+		result += i->path + " " + i->name + "\n";
+	}
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
+	}
+
+	ShowMessage(result);
+}
+
+void ShowProcedureList(const ByteCodeModule& byte_code_module) {
+	std::string result;
+	for (
+		SubprogramMap::const_iterator j =
+			byte_code_module.procedures.begin();
+		j != byte_code_module.procedures.end();
+		++j
+	) {
+		result += j->first + " " + ConvertToString(j->second)+ "\n";
+	}
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
+	}
+
+	ShowMessage(result);
+}
+
+void ShowFunctionList(const ByteCodeModule& byte_code_module) {
+	std::string result;
+	for (
+		SubprogramMap::const_iterator j =
+			byte_code_module.functions.begin();
+		j != byte_code_module.functions.end();
+		++j
+	) {
+		result += j->first + " " + ConvertToString(j->second) + "\n";
+	}
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
+	}
+
+	ShowMessage(result);
+}
+
+void ShowVariableList(const ByteCodeModule& byte_code_module) {
+	std::string result;
+	for (
+		VariableSet::const_iterator k = byte_code_module.variables.begin();
+		k != byte_code_module.variables.end();
+		++k
+	) {
+		result += *k + "\n";
+	}
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
+	}
+
+	ShowMessage(result);
+}
+
+void ShowByteCode(const ByteCodeModule& byte_code_module) {
+	std::string result;
+	for (
+		ByteCode::const_iterator m = byte_code_module.byte_code.begin();
+		m != byte_code_module.byte_code.end();
+		++m
+	) {
+		result +=
+			ConvertToString(m->line_number)
+			+ " "
+			+ m->mnemonic
+			+ " "
+			+ m->operand
+			+ "\n";
+	}
+	if (!result.empty()) {
+		result = result.substr(0, result.length() - 1);
+	}
+
+	ShowMessage(result);
+}
 
 void ProcessError(const std::string& description) {
 	ShowMessage(description, MESSAGE_ERROR);
@@ -347,15 +385,23 @@ void ShowVersion(void) {
 void ShowShortHelp(void) {
 	ShowMessage(
 		"Usage:\n"
-			"\twbc option\n"
-			"\twbc filename\n"
+			"\twbc [option] [input_filename]\n"
 		"\n"
 		"Options:\n"
 			"\t-v, --version - show version;\n"
-			"\t-h, --help - show help.\n"
+			"\t-h, --help - show help;\n"
+			"\t--final-state=final_state_name - set final state, "
+				"where final_state_name is:\n"
+				"\t\tpreprocessed-code - output preprocessed code;\n"
+				"\t\tlibrary-list - output library list;\n"
+				"\t\tprocedure-list - output procedure list;\n"
+				"\t\tfunction-list - output function list;\n"
+				"\t\tvariable-list - output variable list;\n"
+				"\t\tbyte-code - output byte code;\n"
+				"\t\tassembler-code - output assembler code.\n"
 		"\n"
 		"Arguments:\n"
-			"\tfilename - program filename."
+			"\tinput_filename - program source code filename."
 	);
 }
 
@@ -365,13 +411,27 @@ void ShowHelp(void) {
 	ShowShortHelp();
 }
 
-std::string ProcessCommandLineArguments(
+CommandLineArguments ProcessCommandLineArguments(
 	int number_of_arguments,
 	char* arguments[]
 ) {
-	if (number_of_arguments != 2) {
+	CommandLineArguments command_line_arguments;
+	std::string base_path = arguments[0];
+	#ifdef OS_LINUX
+		size_t last_separator_index = base_path.find_last_of('/');
+	#elif defined(OS_WINDOWS)
+		size_t last_separator_index = base_path.find_last_of('\\');
+	#endif
+	if (last_separator_index != std::string::npos) {
+		command_line_arguments.base_path = base_path.substr(
+			0,
+			last_separator_index
+		);
+	}
+
+	if (number_of_arguments != 2 && number_of_arguments != 3) {
 		ShowMessage(
-			"Error! Invalid number of arguments. Expected one argument.\n"
+			"Error! Invalid number of arguments. Expected 1 or 2 arguments.\n"
 		);
 		ShowShortHelp();
 
@@ -384,18 +444,51 @@ std::string ProcessCommandLineArguments(
 		} else if (argument == "-h" || argument == "--help") {
 			ShowHelp();
 			std::exit(EXIT_SUCCESS);
+		} else if (argument.substr(0, 14) == "--final-state=") {
+			if (number_of_arguments != 3) {
+				ShowMessage("Error! Missed input filename.\n");
+				ShowShortHelp();
+
+				std::exit(EXIT_FAILURE);
+			}
+
+			std::string final_state = argument.substr(14);
+			if (final_state == "preprocessed-code") {
+				command_line_arguments.final_state = STATE_PREPROCESSED_CODE;
+			} else if (final_state == "library-list") {
+				command_line_arguments.final_state = STATE_LIBRARY_LIST;
+			} else if (final_state == "procedure-list") {
+				command_line_arguments.final_state = STATE_PROCEDURE_LIST;
+			} else if (final_state == "function-list") {
+				command_line_arguments.final_state = STATE_FUNCTION_LIST;
+			} else if (final_state == "variable-list") {
+				command_line_arguments.final_state = STATE_VARIABLE_LIST;
+			} else if (final_state == "byte-code") {
+				command_line_arguments.final_state = STATE_BYTE_CODE;
+			} else if (final_state == "assembler-code") {
+				command_line_arguments.final_state = STATE_ASSEMBLER_CODE;
+			} else {
+				ShowMessage(
+					"Error! Unknown final state \"" + final_state + "\".\n"
+				);
+				ShowShortHelp();
+
+				std::exit(EXIT_FAILURE);
+			}
+
+			command_line_arguments.input_filename = arguments[2];
 		} else {
-			return argument;
+			command_line_arguments.input_filename = argument;
 		}
 	}
 
-	return "";
+	return command_line_arguments;
 }
 
 CodeLines FileRead(const std::string& filename) {
 	std::ifstream in(filename.c_str());
 	if (!in) {
-		ProcessError("Error! Unable to open source file \"" + filename + "\".");
+		ProcessError("Error! Unable to open input file \"" + filename + "\".");
 	}
 
 	CodeLines code_lines;
@@ -413,7 +506,7 @@ CodeLines FileRead(const std::string& filename) {
 void FileWrite(const std::string& filename, const std::string& text) {
 	std::ofstream out(filename.c_str());
 	if (!out) {
-		ProcessError("Error! Unable to open target file \"" + filename + "\".");
+		ProcessError("Error! Unable to open output file \"" + filename + "\".");
 	}
 
 	out << text;
@@ -1321,9 +1414,9 @@ std::string ConvertByteCodeToAssembler(
 			+ "\tadd $4, %esp\n"
 			+ "\tsubl $4, %esp\n"
 			+ "\tfstps (%esp)\n"
-			+ "\tpop " + i->first + "\n"
-			+ "\n";
+			+ "\tpop " + i->first + "\n";
 	}
+	assembler_code += "\n";
 
 	StringList numbers;
 	StringList strings;
@@ -1350,8 +1443,7 @@ std::string ConvertByteCodeToAssembler(
 				+ "\tfld CONSTANT_NUMBER"
 					+ ConvertToString(numbers.size() - 1)
 					+ "\n"
-				+ "\tfstps (%esp)\n"
-				+ "\n";
+				+ "\tfstps (%esp)\n";
 		} else if (mnemonic.mnemonic == "push_s") {
 			if (!IsString(mnemonic.operand)) {
 				ProcessError(
@@ -1373,8 +1465,7 @@ std::string ConvertByteCodeToAssembler(
 					+ "\n"
 				+ "\tadd $4, %esp\n"
 				+ "\tsubl $4, %esp\n"
-				+ "\tfstps (%esp)\n"
-				+ "\n";
+				+ "\tfstps (%esp)\n";
 		} else if (mnemonic.mnemonic == "push_v") {
 			if (!IsIdentifier(mnemonic.operand)) {
 				ProcessError(
@@ -1398,9 +1489,7 @@ std::string ConvertByteCodeToAssembler(
 				);
 			}
 
-			assembler_code +=
-				"\tpush " + mnemonic.operand + "\n"
-				+ "\n";
+			assembler_code += "\tpush " + mnemonic.operand + "\n";
 		} else if (mnemonic.mnemonic == "pop") {
 			if (!IsIdentifier(mnemonic.operand)) {
 				ProcessError(
@@ -1424,9 +1513,7 @@ std::string ConvertByteCodeToAssembler(
 				);
 			}
 
-			assembler_code +=
-				"\tpop " + mnemonic.operand + "\n"
-				+ "\n";
+			assembler_code += "\tpop " + mnemonic.operand + "\n";
 		} else if (mnemonic.mnemonic == "lbl") {
 			if (!IsIdentifier(mnemonic.operand)) {
 				ProcessError(
@@ -1438,9 +1525,7 @@ std::string ConvertByteCodeToAssembler(
 				);
 			}
 
-			assembler_code +=
-				mnemonic.operand + ":\n"
-				+ "\n";
+			assembler_code += mnemonic.operand + ":\n";
 		} else if (mnemonic.mnemonic == "jmp") {
 			if (!IsIdentifier(mnemonic.operand)) {
 				ProcessError(
@@ -1452,9 +1537,7 @@ std::string ConvertByteCodeToAssembler(
 				);
 			}
 
-			assembler_code +=
-				"\tjmp " + mnemonic.operand + "\n"
-				+ "\n";
+			assembler_code += "\tjmp " + mnemonic.operand + "\n";
 		} else if (mnemonic.mnemonic == "je") {
 			if (!IsIdentifier(mnemonic.operand)) {
 				ProcessError(
@@ -1469,8 +1552,7 @@ std::string ConvertByteCodeToAssembler(
 			assembler_code +=
 				std::string("\tcmp $0, (%esp)\n")
 				+ "\tpop %eax\n"
-				+ "\tje " + mnemonic.operand + "\n"
-				+ "\n";
+				+ "\tje " + mnemonic.operand + "\n";
 		} else if (mnemonic.mnemonic == "call") {
 			SubprogramMap::const_iterator iterator =
 				byte_code_module.procedures.find(mnemonic.operand);
@@ -1491,34 +1573,27 @@ std::string ConvertByteCodeToAssembler(
 				return_result = true;
 			}
 
-			assembler_code +=
-				"\tcall " + mnemonic.operand + "\n"
-				+ "\n";
+			assembler_code += "\tcall " + mnemonic.operand + "\n";
 
 			size_t number_of_arguments = 4 * iterator->second;
 			if (number_of_arguments > 0) {
 				assembler_code +=
 					"\taddl $" + ConvertToString<size_t>(number_of_arguments)
-						+ ", %esp\n"
-					+ "\n";
+						+ ", %esp\n";
 			}
 
 			if (return_result) {
 				assembler_code +=
 					std::string("\tsubl $4, %esp\n")
-					+ "\tfstps (%esp)\n"
-					+ "\n";
+					+ "\tfstps (%esp)\n";
 			}
 		} else if (mnemonic.mnemonic == "to_str") {
 			assembler_code +=
 				"\tcall " + CorrectSubprogramName("ArrayConvertToString") + "\n"
 				+ "\taddl $4, %esp\n"
-				+ "\tpush %eax\n"
-				+ "\n";
+				+ "\tpush %eax\n";
 		} else if (mnemonic.mnemonic == "clr_stck") {
-			assembler_code +=
-				std::string("\tpop %eax\n")
-				+ "\n";
+			assembler_code += "\tpop %eax\n";
 		} else {
 			ProcessError(
 				"Undefined mnemonic \""
@@ -1529,13 +1604,13 @@ std::string ConvertByteCodeToAssembler(
 			);
 		}
 	}
+	assembler_code += "\n";
 
 	assembler_code +=
 		"\tcall " + CorrectSubprogramName("ArrayDeleteAll") + "\n"
 		+ "\tcall " + CorrectSubprogramName("FileCloseAll") + "\n"
 		+ "\tmov $0, %eax\n"
-		+ "\tret\n"
-		+ "\n";
+		+ "\tret\n";
 
 	assembler_code += "\t.data\n";
 	StringList::const_iterator numbers_begin = numbers.begin();
@@ -1550,38 +1625,6 @@ std::string ConvertByteCodeToAssembler(
 				+ ":\n"
 			+ "\t.float " + *k + "\n";
 	}
-
-	for (
-		InbuildStringConstantMap::const_iterator l =
-			inbuild_string_constants.begin();
-		l != inbuild_string_constants.end();
-		++l
-	) {
-		assembler_code +=
-			"CONSTANT_STRING"
-				+ ConvertToString(
-					std::distance(inbuild_string_constants.begin(), l)
-				)
-				+ ":\n"
-			+ "\t.string " + l->second + "\n";
-	}
-
-	StringList::const_iterator strings_begin = strings.begin();
-	for (
-		StringList::const_iterator m = strings_begin;
-		m != strings.end();
-		++m
-	) {
-		assembler_code +=
-			"CONSTANT_STRING"
-				+ ConvertToString(
-					inbuild_string_constants.size()
-					+ std::distance(strings_begin, m)
-				)
-				+ ":\n"
-			"\t.string " + *m + "\n";
-	}
-
 	for (
 		VariableSet::const_iterator n = byte_code_module.variables.begin();
 		n != byte_code_module.variables.end();
@@ -1598,6 +1641,37 @@ std::string ConvertByteCodeToAssembler(
 					))
 				+ "\n";
 	}
+	assembler_code += "\n";
+
+	for (
+		InbuildStringConstantMap::const_iterator l =
+			inbuild_string_constants.begin();
+		l != inbuild_string_constants.end();
+		++l
+	) {
+		assembler_code +=
+			"CONSTANT_STRING"
+				+ ConvertToString(
+					std::distance(inbuild_string_constants.begin(), l)
+				)
+				+ ":\n"
+			+ "\t.string " + l->second + "\n";
+	}
+	StringList::const_iterator strings_begin = strings.begin();
+	for (
+		StringList::const_iterator m = strings_begin;
+		m != strings.end();
+		++m
+	) {
+		assembler_code +=
+			"CONSTANT_STRING"
+				+ ConvertToString(
+					inbuild_string_constants.size()
+					+ std::distance(strings_begin, m)
+				)
+				+ ":\n"
+			"\t.string " + *m + "\n";
+	}
 
 	return assembler_code;
 }
@@ -1605,21 +1679,33 @@ std::string ConvertByteCodeToAssembler(
 void MakeExecutableFile(
 	const std::string& assembler_code,
 	const LibrariesList& libraries,
-	const std::string& output_filename
+	const CommandLineArguments& command_line_arguments
 ) {
 	#ifdef OS_LINUX
 		std::string input_filename = std::string(std::tmpnam(NULL)) + ".s";
 	#elif defined(OS_WINDOWS)
 		std::string input_filename = std::string(std::tmpnam(NULL)) + "s";
 	#endif
-	#ifdef DEBUG_OUTPUT
-		ShowMessage("Save assembler code to \"" + input_filename + "\".");
-	#endif
 	FileWrite(input_filename, assembler_code);
 
-	#ifdef DEBUG_OUTPUT
-		ShowMessage("Make executable file.");
+	std::string output_filename = command_line_arguments.input_filename;
+	#ifdef OS_LINUX
+		size_t last_separator_index =
+			command_line_arguments.input_filename.find_last_of('/');
+	#elif defined(OS_WINDOWS)
+		size_t last_separator_index =
+			command_line_arguments.input_filename.find_last_of('\\');
 	#endif
+	size_t suffix_begin_index =
+		command_line_arguments.input_filename.find_last_of('.');
+	if (
+		suffix_begin_index != std::string::npos
+		&& (last_separator_index == std::string::npos
+		|| suffix_begin_index > last_separator_index)
+	) {
+		output_filename = output_filename.substr(0, suffix_begin_index);
+	}
+
 	std::string command =
 		"g++ -O2 -m32 -o "
 		+ output_filename
@@ -1636,12 +1722,19 @@ void MakeExecutableFile(
 		}
 		command += " -l" + library.name;
 	}
-	command += " -L./libs/ -lNicoleFramework";
-	#ifdef DEBUG_OUTPUT
-		ShowMessage("Using command: \"" + command + "\".");
-	#endif
-	int result = std::system(command.c_str());
-	if (result != 0) {
+	command +=
+		" -L"
+		+ command_line_arguments.base_path
+		#ifdef OS_LINUX
+			+ "/"
+		#elif defined(OS_WINDOWS)
+			+ "\\"
+		#endif
+		+ "libs -lNicoleFramework";
+	ShowMessage(command);
+
+	int status_code = std::system(command.c_str());
+	if (status_code != 0) {
 		ProcessError("Assembling or linking finished with error.");
 	}
 
@@ -1655,17 +1748,20 @@ void MakeExecutableFile(
 }
 
 int main(int number_of_arguments, char* arguments[]) {
-	std::string input_filename = ProcessCommandLineArguments(
+	CommandLineArguments command_line_arguments = ProcessCommandLineArguments(
 		number_of_arguments,
 		arguments
 	);
-	CodeLines code_lines = Preprocess(FileRead(input_filename));
+	CodeLines code_lines = Preprocess(
+		FileRead(command_line_arguments.input_filename)
+	);
 	if (code_lines.empty()) {
 		ProcessError("Program is empty.");
 	}
-	#ifdef DEBUG_OUTPUT
+	if (command_line_arguments.final_state == STATE_PREPROCESSED_CODE) {
 		ShowCodeLines(code_lines);
-	#endif
+		std::exit(EXIT_SUCCESS);
+	}
 
 	InbuildVariableMap inbuild_variables;
 	inbuild_variables["FALSE"] = 0.0f;
@@ -1691,37 +1787,54 @@ int main(int number_of_arguments, char* arguments[]) {
 		inbuild_variables,
 		inbuild_string_constants
 	);
-	#ifdef DEBUG_OUTPUT
-		ShowByteCode(byte_code_module);
-	#endif
+	switch (command_line_arguments.final_state) {
+		case STATE_LIBRARY_LIST:
+			ShowLibraryList(byte_code_module);
+			std::exit(EXIT_SUCCESS);
+			break;
+		case STATE_PROCEDURE_LIST:
+			ShowProcedureList(byte_code_module);
+			std::exit(EXIT_SUCCESS);
+			break;
+		case STATE_FUNCTION_LIST:
+			ShowFunctionList(byte_code_module);
+			std::exit(EXIT_SUCCESS);
+			break;
+		case STATE_VARIABLE_LIST:
+			ShowVariableList(byte_code_module);
+			std::exit(EXIT_SUCCESS);
+			break;
+		case STATE_BYTE_CODE:
+			ShowByteCode(byte_code_module);
+			std::exit(EXIT_SUCCESS);
+			break;
+		default:
+			break;
+	}
 
 	std::string assembler_code = ConvertByteCodeToAssembler(
 		byte_code_module,
 		inbuild_variables,
 		inbuild_string_constants
 	);
-	#ifdef DEBUG_OUTPUT
-		ShowMessage("Assembler code:");
-		ShowMessage(assembler_code);
-	#endif
+	if (command_line_arguments.final_state == STATE_ASSEMBLER_CODE) {
+		if (
+			!assembler_code.empty()
+			&& assembler_code[assembler_code.length() - 1] == '\n'
+		) {
+			assembler_code = assembler_code.substr(
+				0,
+				assembler_code.length() - 1
+			);
+		}
 
-	std::string output_filename = input_filename;
-	#ifdef OS_LINUX
-		size_t last_separator_index = input_filename.find_last_of('/');
-	#elif defined(OS_WINDOWS)
-		size_t last_separator_index = input_filename.find_last_of('\\');
-	#endif
-	size_t suffix_begin_index = input_filename.find_last_of('.');
-	if (
-		suffix_begin_index != std::string::npos
-		&& (last_separator_index == std::string::npos
-		|| suffix_begin_index > last_separator_index)
-	) {
-		output_filename = output_filename.substr(0, suffix_begin_index);
+		ShowMessage(assembler_code);
+		std::exit(EXIT_SUCCESS);
 	}
+
 	MakeExecutableFile(
 		assembler_code,
 		byte_code_module.libraries,
-		output_filename
+		command_line_arguments
 	);
 }
