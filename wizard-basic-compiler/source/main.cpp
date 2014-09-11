@@ -115,6 +115,11 @@ struct ByteCodeModule {
 };
 typedef std::map<std::string, float> InbuildVariableMap;
 typedef std::map<std::string, std::string> InbuildStringConstantMap;
+enum BuildTarget {
+	TARGET_ANY,
+	TARGET_LINUX,
+	TARGET_WINDOWS
+};
 
 template<typename Type>
 std::string ConvertToString(Type value) {
@@ -1052,38 +1057,61 @@ ByteCodeModule Compile(
 			}
 			path = path.substr(1, path.size() - 2);
 
-			Library library;
+			BuildTarget build_target = TARGET_ANY;
+			if (path.substr(0, 6) == "linux:") {
+				build_target = TARGET_LINUX;
+				path = path.substr(6);
+			} else if (path.substr(0, 8) == "windows:") {
+				build_target = TARGET_WINDOWS;
+				path = path.substr(8);
+			}
+
 			#ifdef OS_LINUX
-				size_t last_separator_index = path.find_last_of('/');
+				bool is_os_matched =
+					build_target == TARGET_ANY
+					|| build_target == TARGET_LINUX;
 			#elif defined(OS_WINDOWS)
-				size_t last_separator_index = path.find_last_of('\\');
+				bool is_os_matched =
+					build_target == TARGET_ANY
+					|| build_target == TARGET_WINDOWS;
 			#endif
-			if (last_separator_index != std::string::npos) {
-				library.path = path.substr(0, ++last_separator_index);
-			} else {
-				last_separator_index = 0;
-			}
+			if (is_os_matched) {
+				Library library;
+				#ifdef OS_LINUX
+					size_t last_separator_index = path.find_last_of('/');
+				#elif defined(OS_WINDOWS)
+					size_t last_separator_index = path.find_last_of('\\');
+				#endif
+				if (last_separator_index != std::string::npos) {
+					library.path = path.substr(0, ++last_separator_index);
+				} else {
+					last_separator_index = 0;
+				}
 
-			library.name = path.substr(last_separator_index);
-			if (library.name.empty()) {
-				ProcessError(
-					"Invalid format of path on line "
-					+ ConvertToString(line_number)
-					+ "."
-				);
-			}
+				library.name = path.substr(last_separator_index);
+				if (library.name.empty()) {
+					ProcessError(
+						"Invalid format of path on line "
+						+ ConvertToString(line_number)
+						+ "."
+					);
+				}
 
-			size_t library_name_length = library.name.length();
-			size_t suffix_begin_index = library_name_length - 2;
-			if (
-				library_name_length > 5
-				&& library.name.substr(0, 3) == "lib"
-				&& library.name.substr(suffix_begin_index) == ".a"
-			) {
-				library.name = library.name.substr(3, suffix_begin_index - 3);
-			}
+				size_t library_name_length = library.name.length();
+				size_t suffix_begin_index = library_name_length - 2;
+				if (
+					library_name_length > 5
+					&& library.name.substr(0, 3) == "lib"
+					&& library.name.substr(suffix_begin_index) == ".a"
+				) {
+					library.name = library.name.substr(
+						3,
+						suffix_begin_index - 3
+					);
+				}
 
-			byte_code_module.libraries.push_back(library);
+				byte_code_module.libraries.push_back(library);
+			}
 		} else if (code_line.substr(0, 10) == "procedure ") {
 			size_t separator_index = code_line.find('/');
 			if (separator_index == std::string::npos) {
