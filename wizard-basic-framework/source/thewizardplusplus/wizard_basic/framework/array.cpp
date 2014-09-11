@@ -1,7 +1,7 @@
 #include "array.h"
 #include "utils.h"
 
-using namespace thewizardplusplus::nicole::framework;
+using namespace thewizardplusplus::wizard_basic::framework;
 
 static ArrayList  arrays;
 static StringList converted_strings;

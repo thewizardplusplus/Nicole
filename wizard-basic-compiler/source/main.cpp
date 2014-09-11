@@ -1758,7 +1758,13 @@ void MakeExecutableFile(
 		#elif defined(OS_WINDOWS)
 			+ "\\"
 		#endif
-		+ "libs -lNicoleFramework";
+		+ "../framework"
+		#ifdef OS_LINUX
+			+ "/"
+		#elif defined(OS_WINDOWS)
+			+ "\\"
+		#endif
+		+ "libraries -lwbf";
 	ShowMessage(command);
 
 	int status_code = std::system(command.c_str());

@@ -5,7 +5,7 @@
 #include <fstream>
 
 namespace thewizardplusplus {
-namespace nicole {
+namespace wizard_basic {
 namespace framework {
 
 typedef std::list<std::fstream*> FileList;

@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 
-using namespace thewizardplusplus::nicole::framework;
+using namespace thewizardplusplus::wizard_basic::framework;
 
 static bool initialize_prmg = false;
 

@@ -7,7 +7,7 @@
 #endif
 #include <cstdlib>
 
-using namespace thewizardplusplus::nicole::framework;
+using namespace thewizardplusplus::wizard_basic::framework;
 
 #ifdef OS_LINUX
 static timeval       start_time = {0};

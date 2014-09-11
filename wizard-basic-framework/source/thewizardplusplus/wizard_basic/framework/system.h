@@ -2,7 +2,7 @@
 #define SYSTEM_H
 
 namespace thewizardplusplus {
-namespace nicole {
+namespace wizard_basic {
 namespace framework {
 
 extern "C" {

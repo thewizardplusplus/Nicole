@@ -1,10 +1,10 @@
 #include "utils.h"
-#include "array.h"
 #include "os.h"
+#include "array.h"
 #include <iostream>
 #include <cstdlib>
 
-using namespace thewizardplusplus::nicole::framework;
+using namespace thewizardplusplus::wizard_basic::framework;
 
 extern "C" float ProcessApplicationPath(const char* path) {
 	std::string application_path = path;

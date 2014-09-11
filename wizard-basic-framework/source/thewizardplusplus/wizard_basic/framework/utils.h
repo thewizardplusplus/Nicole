@@ -5,7 +5,7 @@
 #include <sstream>
 
 namespace thewizardplusplus {
-namespace nicole {
+namespace wizard_basic {
 namespace framework {
 
 template<typename Type>

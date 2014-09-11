@@ -6,7 +6,7 @@
 #include <string>
 
 namespace thewizardplusplus {
-namespace nicole {
+namespace wizard_basic {
 namespace framework {
 
 typedef std::vector<float>      Array;
