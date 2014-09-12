@@ -1,11 +1,11 @@
-#include "math.h"
+#include "maths.h"
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 
-using namespace thewizardplusplus::wizard_basic::framework;
+using namespace thewizardplusplus::wizard_basic::framework::maths;
 
-static bool initialize_prmg = false;
+static bool initialize_prng = false;
 
 extern "C" float NumberAdd(float number2, float number1) {
 	return number1 + number2;
@@ -71,7 +71,7 @@ extern "C" float MathArctg(float number) {
 	return std::atan(number);
 }
 
-extern "C" float MathExponent(float number) {
+extern "C" float MathExp(float number) {
 	return std::exp(number);
 }
 
@@ -91,14 +91,17 @@ extern "C" float MathPower(float exponent, float base) {
 	return std::pow(base, exponent);
 }
 
-extern "C" float MathInteger(float number) {
-	return std::floor(number);
+extern "C" float MathIntegral(float number) {
+	float integral = 0.0f;
+	std::modf(number, &integral);
+
+	return integral;
 }
 
 extern "C" float MathRandom(float maximum, float minimum) {
-	if (!initialize_prmg) {
+	if (!initialize_prng) {
 		std::srand(std::time(NULL));
-		initialize_prmg = true;
+		initialize_prng = true;
 	}
 
 	return (maximum - minimum) * rand() / RAND_MAX + minimum;

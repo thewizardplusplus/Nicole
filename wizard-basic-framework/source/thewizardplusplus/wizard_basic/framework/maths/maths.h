@@ -1,9 +1,10 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef MATHS_H
+#define MATHS_H
 
 namespace thewizardplusplus {
 namespace wizard_basic {
 namespace framework {
+namespace maths {
 
 extern "C" {
 
@@ -35,6 +36,7 @@ float MathAngle(float y, float x);
 
 }
 
+}
 }
 }
 }

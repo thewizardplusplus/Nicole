@@ -1,21 +1,19 @@
 #ifndef INPUT_OUTPUT_H
 #define INPUT_OUTPUT_H
 
-#include <list>
+#include <vector>
 #include <fstream>
 
 namespace thewizardplusplus {
 namespace wizard_basic {
 namespace framework {
+namespace io {
 
-typedef std::list<std::fstream*> FileList;
-class FileOpenMode {
-public:
-	enum Types {
-		READ,
-		APPEND,
-		REWRITE
-	};
+typedef std::vector<std::fstream*> FileList;
+enum FileOpenMode {
+	FILE_MODE_READ,
+	FILE_MODE_APPEND,
+	FILE_MODE_REWRITE
 };
 
 extern "C" {
@@ -32,6 +30,7 @@ std::fstream* FileGetById(float file_id);
 
 }
 
+}
 }
 }
 }

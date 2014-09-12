@@ -976,7 +976,7 @@ ByteCodeModule Compile(
 	) {
 		byte_code_module.variables.insert(j->first);
 	}
-	byte_code_module.variables.insert("APPLICATION_PATH");
+	byte_code_module.variables.insert("APP_PATH");
 
 	byte_code_module.functions[CorrectSubprogramName("c_string")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("ArrayAppend")] = 2;
@@ -998,8 +998,8 @@ ByteCodeModule Compile(
 	byte_code_module.functions[CorrectSubprogramName("MathArcsin")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("MathArctg")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("MathCos")] = 1;
-	byte_code_module.functions[CorrectSubprogramName("MathExponent")] = 1;
-	byte_code_module.functions[CorrectSubprogramName("MathInteger")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathExp")] = 1;
+	byte_code_module.functions[CorrectSubprogramName("MathIntegral")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("MathLg")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("MathLn")] = 1;
 	byte_code_module.functions[CorrectSubprogramName("MathModulus")] = 1;
@@ -1423,11 +1423,11 @@ std::string ConvertByteCodeToAssembler(
 		+ CorrectSubprogramName("main") + ":\n"
 		+ "\tmov 8(%esp), %eax\n"
 		+ "\tpush (%eax)\n"
-		+ "\tcall " + CorrectSubprogramName("ProcessApplicationPath") + "\n"
+		+ "\tcall " + CorrectSubprogramName("ProcessAppPath") + "\n"
 		+ "\tadd $4, %esp\n"
 		+ "\tsubl $4, %esp\n"
 		+ "\tfstps (%esp)\n"
-		+ "\tpop APPLICATION_PATH\n"
+		+ "\tpop APP_PATH\n"
 		+ "\n";
 
 	for (

@@ -1,12 +1,13 @@
 #include "utils.h"
 #include "os.h"
-#include "array.h"
+#include "../array/array.h"
 #include <iostream>
 #include <cstdlib>
 
-using namespace thewizardplusplus::wizard_basic::framework;
+using namespace thewizardplusplus::wizard_basic::framework::utils;
+using namespace thewizardplusplus::wizard_basic::framework::array;
 
-extern "C" float ProcessApplicationPath(const char* path) {
+extern "C" float ProcessAppPath(const char* path) {
 	std::string application_path = path;
 	#ifdef OS_LINUX
 		size_t last_separator_index = application_path.find_last_of('/');

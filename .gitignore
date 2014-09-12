@@ -2,3 +2,7 @@
 *.pro.user
 *.o
 /build/
+/docs/examples/*
+!/docs/examples/*.wb
+/docs/tests/*
+!/docs/tests/*.wb

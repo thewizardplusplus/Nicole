@@ -7,6 +7,7 @@
 namespace thewizardplusplus {
 namespace wizard_basic {
 namespace framework {
+namespace utils {
 
 template<typename Type>
 std::string ConvertToString(Type value) {
@@ -16,9 +17,10 @@ std::string ConvertToString(Type value) {
 	return out.str();
 }
 
-extern "C" float ProcessApplicationPath(const char* path);
+extern "C" float ProcessAppPath(const char* path);
 extern "C" void ProcessError(const std::string& description);
 
+}
 }
 }
 }

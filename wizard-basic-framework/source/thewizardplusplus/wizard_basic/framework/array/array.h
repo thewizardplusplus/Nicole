@@ -2,15 +2,16 @@
 #define ARRAY_H
 
 #include <vector>
-#include <list>
 #include <string>
+#include <list>
 
 namespace thewizardplusplus {
 namespace wizard_basic {
 namespace framework {
+namespace array {
 
 typedef std::vector<float> Array;
-typedef std::list<Array*> ArrayList;
+typedef std::vector<Array*> ArrayList;
 typedef std::list<std::string*> StringList;
 
 extern "C" {
@@ -34,6 +35,7 @@ Array* ArrayGetById(float array_id);
 
 }
 
+}
 }
 }
 }

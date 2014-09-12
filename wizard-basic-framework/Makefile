@@ -1,5 +1,5 @@
 SOURCE = source/thewizardplusplus/wizard_basic/framework/
-OBJECTS = $(SOURCE)array.o $(SOURCE)input_output.o $(SOURCE)math.o $(SOURCE)system.o $(SOURCE)utils.o
+OBJECTS = $(SOURCE)array/array.o $(SOURCE)io/io.o $(SOURCE)maths/maths.o $(SOURCE)system/system.o $(SOURCE)utils/utils.o
 BUILD = ../build/framework/
 BUILD_HEADERS = $(BUILD)headers/
 BUILD_LIBRARIES = $(BUILD)libraries/
@@ -9,9 +9,8 @@ main: $(OBJECTS)
 	mkdir -p $(BUILD_LIBRARIES)
 	$(AR) crs $(BUILD_LIBRARIES)libwbf.a $(OBJECTS)
 
-	mkdir -p $(BUILD_HEADERS)
-	find $(BUILD_HEADERS) -name "*.h" -type f -delete
-	cp $(SOURCE)*.h $(BUILD_HEADERS)
+	rm -rf $(BUILD_HEADERS)
+	rsync -r --include="*/" --include="*.h" --exclude="*" $(SOURCE) $(BUILD_HEADERS)
 
 clean:
 	find . -name "*.o" -type f -delete
