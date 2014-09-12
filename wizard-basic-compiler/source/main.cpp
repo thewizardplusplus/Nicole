@@ -428,11 +428,15 @@ CommandLineArguments ProcessCommandLineArguments(
 		size_t last_separator_index = base_path.find_last_of('\\');
 	#endif
 	if (last_separator_index != std::string::npos) {
-		command_line_arguments.base_path = base_path.substr(
-			0,
-			last_separator_index
-		);
+		base_path = base_path.substr(0, last_separator_index + 1);
+	} else {
+		#ifdef OS_LINUX
+			base_path = "./";
+		#elif defined(OS_WINDOWS)
+			base_path = ".\\";
+		#endif
 	}
+	command_line_arguments.base_path = base_path;
 
 	if (number_of_arguments != 2 && number_of_arguments != 3) {
 		ShowMessage(
@@ -1753,11 +1757,6 @@ void MakeExecutableFile(
 	command +=
 		" -L"
 		+ command_line_arguments.base_path
-		#ifdef OS_LINUX
-			+ "/"
-		#elif defined(OS_WINDOWS)
-			+ "\\"
-		#endif
 		+ "../framework"
 		#ifdef OS_LINUX
 			+ "/"

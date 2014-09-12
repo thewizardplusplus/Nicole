@@ -13,8 +13,7 @@ std::string ConvertToString(Type value) {
 	std::ostringstream out;
 	out << value;
 
-	std::string result = out.str();
-	return result;
+	return out.str();
 }
 
 extern "C" float ProcessApplicationPath(const char* path);

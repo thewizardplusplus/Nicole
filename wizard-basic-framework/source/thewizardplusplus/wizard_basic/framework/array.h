@@ -9,8 +9,8 @@ namespace thewizardplusplus {
 namespace wizard_basic {
 namespace framework {
 
-typedef std::vector<float>      Array;
-typedef std::list<Array*>       ArrayList;
+typedef std::vector<float> Array;
+typedef std::list<Array*> ArrayList;
 typedef std::list<std::string*> StringList;
 
 extern "C" {

@@ -3,12 +3,13 @@
 
 using namespace thewizardplusplus::wizard_basic::framework;
 
-static ArrayList  arrays;
+static ArrayList arrays;
 static StringList converted_strings;
 
 extern "C" float ArrayCreate(float size) {
 	Array* array = new Array(size);
 	arrays.push_back(array);
+
 	return arrays.size() - 1;
 }
 
@@ -27,6 +28,7 @@ extern "C" float ArrayCreateFromString(const char* string) {
 extern "C" float ArrayCreateFromNumber(float number) {
 	std::string string = ConvertToString(number);
 	float array_id = ArrayCreateFromString(string.c_str());
+
 	return array_id;
 }
 
@@ -46,8 +48,8 @@ extern "C" float ArrayConvertToNumber(float array_id) {
 	std::string string = ArrayConvertToString(array_id);
 	ArrayClearMemoryAfterConvertsToStrings();
 
-	std::istringstream in(string);
 	float number = 0.0f;
+	std::istringstream in(string);
 	in >> number;
 
 	return number;
@@ -58,10 +60,8 @@ extern "C" void ArrayDelete(float array_id) {
 		ArrayList::iterator index = arrays.begin();
 		std::advance(index, array_id);
 
-		if (*index != NULL) {
-			delete *index;
-			*index = NULL;
-		}
+		delete *index;
+		*index = NULL;
 
 		return;
 	}
@@ -106,8 +106,7 @@ extern "C" float ArrayAppend(float array_id2, float array_id1) {
 }
 
 extern "C" float ArrayGetSize(float array_id) {
-	Array* array = ArrayGetById(array_id);
-	return array->size();
+	return ArrayGetById(array_id)->size();
 }
 
 extern "C" float ArrayItemGet(float index, float array_id) {
