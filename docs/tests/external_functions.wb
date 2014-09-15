@@ -1,0 +1,9 @@
+procedure puts/1
+function fmodf/2
+
+string TEST_TEXT = "test text"
+puts(c_string(TEST_TEXT))
+
+string REMAINDER = "fmodf(PI, E) (expected ~0.42331) = "
+let remainder = fmodf(E, PI)
+Show(REMAINDER $ ToString(remainder) $ NEW_LINE)
