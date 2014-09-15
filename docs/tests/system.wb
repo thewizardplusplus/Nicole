@@ -13,8 +13,3 @@ string SECOND_UNIT = " ns"
 
 let elapsed_time = TimerGetElapsedTimeInUs()
 Show(ToString(elapsed_time) $ SECOND_UNIT $ NEW_LINE)
-
-Exit()
-
-string DUMMY_TEXT = "dummy text"
-Show(DUMMY_TEXT $ NEW_LINE)

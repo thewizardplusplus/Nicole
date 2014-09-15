@@ -1,0 +1,76 @@
+string NUMBER = "3.14159"
+let number = ToNumber(NUMBER)
+Show(ToString(number) $ NEW_LINE)
+
+let RP_INITIAL_ID = 0
+let RP_SETTED_ID = 1
+let RP_INSERTED_ID = 2
+let RP_APPENDED_ID = 3
+let RP_REMOVED_ID = 4
+string SEPARATOR = ", "
+
+let array = ArrayCreate(5)
+
+let return_point = RP_INITIAL_ID
+go to SHOW_ARRAY
+label RP_INITIAL
+
+ArrayItemSet(array, 0, 1)
+ArrayItemSet(array, 1, 2)
+ArrayItemSet(array, 2, 3)
+ArrayItemSet(array, 3, 4)
+ArrayItemSet(array, 4, 5)
+
+let return_point = RP_SETTED_ID
+go to SHOW_ARRAY
+label RP_SETTED
+
+ArrayItemInsert(array, 1, 1.5)
+ArrayItemInsert(array, 3, 2.5)
+ArrayItemInsert(array, 5, 3.5)
+ArrayItemInsert(array, 7, 4.5)
+
+let return_point = RP_INSERTED_ID
+go to SHOW_ARRAY
+label RP_INSERTED
+
+ArrayItemAppend(array, 5.5)
+ArrayItemAppend(array, 6)
+
+let return_point = RP_APPENDED_ID
+go to SHOW_ARRAY
+label RP_APPENDED
+
+ArrayItemRemove(array, 0)
+ArrayItemRemove(array, 0)
+
+let return_point = RP_REMOVED_ID
+go to SHOW_ARRAY
+label RP_REMOVED
+
+Exit()
+
+label SHOW_ARRAY
+	let i = 0
+	label SHOWING_ARRAY_LOOP
+		if i > 0 then
+			Show(SEPARATOR)
+
+		let item = ArrayItemGet(array, i)
+		Show(ToString(item))
+
+		let i = i + 1
+		if i < ArrayGetSize(array) then
+			go to SHOWING_ARRAY_LOOP
+
+	Show(NEW_LINE)
+	if return_point = RP_INITIAL_ID then
+		go to RP_INITIAL
+	if return_point = RP_SETTED_ID then
+		go to RP_SETTED
+	if return_point = RP_INSERTED_ID then
+		go to RP_INSERTED
+	if return_point = RP_APPENDED_ID then
+		go to RP_APPENDED
+	if return_point = RP_REMOVED_ID then
+		go to RP_REMOVED
