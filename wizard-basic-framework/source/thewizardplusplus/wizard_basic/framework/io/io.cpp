@@ -72,7 +72,7 @@ extern "C" void FileCloseAll(void) {
 	}
 }
 
-extern "C" void FileDelete(float filename_id) {
+extern "C" void FileRemove(float filename_id) {
 	std::remove(ArrayConvertToString(filename_id));
 	ArrayClearMemoryAfterConvertsToStrings();
 }
@@ -97,12 +97,12 @@ extern "C" float FileRead(float number_of_bytes, float file_id) {
 
 extern "C" float FileReadAll(float file_id) {
 	std::fstream* file = FileGetById(file_id);
-
-	char* buffer = new char[FILE_READ_ALL_BUFFER_SIZE];
-
 	float array_id = ArrayCreate(0);
 	Array* array = ArrayGetById(array_id);
 
+	char* buffer = new char[FILE_READ_ALL_BUFFER_SIZE];
+	std::streampos position = file->tellg();
+	file->seekg(0);
 	while (true) {
 		size_t number_of_read_bytes = file->readsome(
 			buffer,
@@ -117,6 +117,7 @@ extern "C" float FileReadAll(float file_id) {
 		}
 	}
 
+	file->seekg(position);
 	delete[] buffer;
 	buffer = NULL;
 

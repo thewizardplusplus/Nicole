@@ -1,0 +1,56 @@
+string ERROR = "Error! "
+string WRITING_ERROR_DESCRIPTION = "Unable to open file for writing."
+string APPEND_ERROR_DESCRIPTION = "Unable to open file for appending."
+string READ_ERROR_DESCRIPTION = "Unable to open file for reading."
+
+string FILENAME = "test.txt"
+let FILENAME = APP_PATH $ FILENAME
+
+let file = FileOpen(FILENAME, FILE_OPEN_MODE_REWRITE)
+if file = FILE_OPEN_ERROR then
+	go to WRITING_ERROR
+
+string TEST_DATA_1 = "test data 1\n"
+FileWrite(file, TEST_DATA_1)
+FileClose(file)
+
+let file = FileOpen(FILENAME, FILE_OPEN_MODE_APPEND)
+if file = FILE_OPEN_ERROR then
+	go to APPEND_ERROR
+
+string TEST_DATA_2 = "test data 2"
+FileWrite(file, TEST_DATA_2)
+FileClose(file)
+
+let file = FileOpen(FILENAME, FILE_OPEN_MODE_READ)
+if file = FILE_OPEN_ERROR then
+	go to READ_ERROR
+
+string QUOTE = "\""
+let partial_data_length = 9
+
+let partial_data = FileRead(file, partial_data_length)
+Show(QUOTE $ partial_data $ QUOTE $ NEW_LINE)
+
+let all_data = FileReadAll(file)
+Show(QUOTE $ all_data $ QUOTE $ NEW_LINE)
+
+let partial_data_length = 2
+
+let partial_data = FileRead(file, partial_data_length)
+Show(QUOTE $ partial_data $ QUOTE $ NEW_LINE)
+FileClose(file)
+
+FileRemove(FILENAME)
+
+Exit()
+
+label WRITING_ERROR
+	Show(ERROR $ WRITING_ERROR_DESCRIPTION $ NEW_LINE)
+	Exit()
+label APPEND_ERROR
+	Show(ERROR $ APPEND_ERROR_DESCRIPTION $ NEW_LINE)
+	Exit()
+label READ_ERROR
+	Show(ERROR $ READ_ERROR_DESCRIPTION $ NEW_LINE)
+	Exit()

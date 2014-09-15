@@ -22,7 +22,7 @@ void Show(float string_id);
 float FileOpen(float mode, float filename_id);
 void FileClose(float file_id);
 void FileCloseAll(void);
-void FileDelete(float filename_id);
+void FileRemove(float filename_id);
 float FileRead(float number_of_bytes, float file_id);
 float FileReadAll(float file_id);
 void FileWrite(float array_id, float file_id);

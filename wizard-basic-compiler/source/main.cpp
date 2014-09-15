@@ -1034,7 +1034,7 @@ ByteCodeModule Compile(
 	byte_code_module.procedures[CorrectSubprogramName("Exit")] = 0;
 	byte_code_module.procedures[CorrectSubprogramName("FileClose")] = 1;
 	byte_code_module.procedures[CorrectSubprogramName("FileCloseAll")] = 0;
-	byte_code_module.procedures[CorrectSubprogramName("FileDelete")] = 1;
+	byte_code_module.procedures[CorrectSubprogramName("FileRemove")] = 1;
 	byte_code_module.procedures[CorrectSubprogramName("FileWrite")] = 2;
 	byte_code_module.procedures[CorrectSubprogramName("Show")] = 1;
 	byte_code_module.procedures[CorrectSubprogramName("TimerStart")] = 0;
@@ -1804,6 +1804,7 @@ int main(int number_of_arguments, char* arguments[]) {
 	inbuild_variables["FILE_OPEN_MODE_READ"] = 0.0f;
 	inbuild_variables["FILE_OPEN_MODE_APPEND"] = 1.0f;
 	inbuild_variables["FILE_OPEN_MODE_REWRITE"] = 2.0f;
+	inbuild_variables["FILE_OPEN_ERROR"] = -1.0f;
 	inbuild_variables["OS_LINUX"] = 1.0f;
 	inbuild_variables["OS_WINDOWS"] = 0.0f;
 
