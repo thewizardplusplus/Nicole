@@ -1,0 +1,136 @@
+string SUM = "PI + E (expected ~5.85987) = "
+let sum = PI + E
+Show(SUM $ ToString(sum) $ NEW_LINE)
+
+string DIFFERENCE = "PI - E (expected ~0.42331) = "
+let difference = PI - E
+Show(DIFFERENCE $ ToString(difference) $ NEW_LINE)
+
+string PRODUCT = "PI * E (expected ~8.53972) = "
+let product = PI * E
+Show(PRODUCT $ ToString(product) $ NEW_LINE)
+
+string QUOTIENT = "PI / E (expected ~1.15573) = "
+let quotient = PI / E
+Show(QUOTIENT $ ToString(quotient) $ NEW_LINE)
+
+string FALSE_STRING = "FALSE"
+string TRUE_STRING = "TRUE"
+
+string LESS = "PI < E (expected FALSE) = "
+let less = PI < E
+if less = FALSE then
+	Show(LESS $ FALSE_STRING $ NEW_LINE)
+if less = TRUE then
+	Show(LESS $ TRUE_STRING $ NEW_LINE)
+
+string GREAT = "PI > E (expected TRUE) = "
+let great = PI > E
+if great = FALSE then
+	Show(GREAT $ FALSE_STRING $ NEW_LINE)
+if great = TRUE then
+	Show(GREAT $ TRUE_STRING $ NEW_LINE)
+
+string EQUAL = "PI = E (expected FALSE) = "
+let equal = PI = E
+if equal = FALSE then
+	Show(EQUAL $ FALSE_STRING $ NEW_LINE)
+if equal = TRUE then
+	Show(EQUAL $ TRUE_STRING $ NEW_LINE)
+
+string CONJUNCTION = "TRUE & TRUE (expected TRUE) = "
+let conjunction = TRUE & TRUE
+if conjunction = FALSE then
+	Show(CONJUNCTION $ FALSE_STRING $ NEW_LINE)
+if conjunction = TRUE then
+	Show(CONJUNCTION $ TRUE_STRING $ NEW_LINE)
+
+string DISJUNCTION = "FALSE | FALSE (expected FALSE) = "
+let disjunction = FALSE | FALSE
+if disjunction = FALSE then
+	Show(DISJUNCTION $ FALSE_STRING $ NEW_LINE)
+if disjunction = TRUE then
+	Show(DISJUNCTION $ TRUE_STRING $ NEW_LINE)
+
+string NEGATION = "!FALSE (expected TRUE) = "
+let negation = !FALSE
+if negation = FALSE then
+	Show(NEGATION $ FALSE_STRING $ NEW_LINE)
+if negation = TRUE then
+	Show(NEGATION $ TRUE_STRING $ NEW_LINE)
+
+string SINE = "MathsSin(PI) (expected ~2.53518e-06) = "
+let sine = MathsSin(PI)
+Show(SINE $ ToString(sine) $ NEW_LINE)
+
+string COSINE = "MathsCos(PI) (expected ~-1) = "
+let cosine = MathsCos(PI)
+Show(COSINE $ ToString(cosine) $ NEW_LINE)
+
+string TANGENT = "MathsTg(PI) (expected ~-2.53518e-06) = "
+let tangent = MathsTg(PI)
+Show(TANGENT $ ToString(tangent) $ NEW_LINE)
+
+let SOME_NUMBER = 0.5
+
+string ARCSINE = "MathsArcsin(0.5) (expected ~0.523599) = "
+let arcsine = MathsArcsin(SOME_NUMBER)
+Show(ARCSINE $ ToString(arcsine) $ NEW_LINE)
+
+string ARCCOSINE = "MathsArccos(0.5) (expected ~1.0472) = "
+let arccosine = MathsArccos(SOME_NUMBER)
+Show(ARCCOSINE $ ToString(arccosine) $ NEW_LINE)
+
+string ARCTANGENT = "MathsArctg(0.5) (expected ~0.463648) = "
+let arctangent = MathsArctg(SOME_NUMBER)
+Show(ARCTANGENT $ ToString(arctangent) $ NEW_LINE)
+
+string EXP = "MathsExp(PI) (expected ~23.1406) = "
+let exp = MathsExp(PI)
+Show(EXP $ ToString(exp) $ NEW_LINE)
+
+string LN = "MathsLn(PI) (expected ~1.14473) = "
+let ln = MathsLn(PI)
+Show(LN $ ToString(ln) $ NEW_LINE)
+
+string LG = "MathsLg(PI) (expected ~0.49715) = "
+let lg = MathsLg(PI)
+Show(LG $ ToString(lg) $ NEW_LINE)
+
+let SOME_NUMBER = 0 - 1
+
+string MODULUS = "MathsModulus(0 - 1) (expected 1) = "
+let modulus = MathsModulus(SOME_NUMBER)
+Show(MODULUS $ ToString(modulus) $ NEW_LINE)
+
+string POWER = "MathsPower(PI, E) (expected ~22.4591) = "
+let power = MathsPower(PI, E)
+Show(POWER $ ToString(power) $ NEW_LINE)
+
+string INTEGRAL = "MathsIntegral(PI) (expected 3) = "
+let integral = MathsIntegral(PI)
+Show(INTEGRAL $ ToString(integral) $ NEW_LINE)
+
+string SQUARE_ROOT = "MathsSquareRoot(PI) (expected ~1.77245) = "
+let square_root = MathsSquareRoot(PI)
+Show(SQUARE_ROOT $ ToString(square_root) $ NEW_LINE)
+
+string ANGLE = "MathsAngle(PI, E) (expected ~0.713285) = "
+let angle = MathsAngle(PI, E)
+Show(ANGLE $ ToString(angle) $ NEW_LINE)
+
+let NUMBER_OF_RANDOM = 5
+
+string SEPARATOR = ", "
+let i = 0
+label GENERATE_RANDOM
+	if i > 0 then
+		Show(SEPARATOR)
+
+	let random = MathsRandom(E, PI)
+	Show(ToString(random))
+
+	let i = i + 1
+	if !(i = NUMBER_OF_RANDOM) then
+		go to GENERATE_RANDOM
+Show(NEW_LINE)

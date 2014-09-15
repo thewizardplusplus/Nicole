@@ -18,21 +18,21 @@ float NumberEq(float number2, float number1);
 float NumberAnd(float number2, float number1);
 float NumberOr(float number2, float number1);
 float NumberNot(float number);
-float MathSin(float number);
-float MathCos(float number);
-float MathTg(float number);
-float MathArcsin(float number);
-float MathArccos(float number);
-float MathArctg(float number);
-float MathExponent(float number);
-float MathLn(float number);
-float MathLg(float number);
-float MathModulus(float number);
-float MathPower(float exponent, float base);
-float MathInteger(float number);
-float MathRandom(float maximum, float minimum);
-float MathSquareRoot(float number);
-float MathAngle(float y, float x);
+float MathsSin(float number);
+float MathsCos(float number);
+float MathsTg(float number);
+float MathsArcsin(float number);
+float MathsArccos(float number);
+float MathsArctg(float number);
+float MathsExp(float number);
+float MathsLn(float number);
+float MathsLg(float number);
+float MathsModulus(float number);
+float MathsPower(float exponent, float base);
+float MathsIntegral(float number);
+float MathsSquareRoot(float number);
+float MathsAngle(float y, float x);
+float MathsRandom(float maximum, float minimum);
 
 }
 

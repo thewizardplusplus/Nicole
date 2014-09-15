@@ -47,70 +47,70 @@ extern "C" float NumberNot(float number) {
 	return !number;
 }
 
-extern "C" float MathSin(float number) {
+extern "C" float MathsSin(float number) {
 	return std::sin(number);
 }
 
-extern "C" float MathCos(float number) {
+extern "C" float MathsCos(float number) {
 	return std::cos(number);
 }
 
-extern "C" float MathTg(float number) {
+extern "C" float MathsTg(float number) {
 	return std::tan(number);
 }
 
-extern "C" float MathArcsin(float number) {
+extern "C" float MathsArcsin(float number) {
 	return std::asin(number);
 }
 
-extern "C" float MathArccos(float number) {
+extern "C" float MathsArccos(float number) {
 	return std::acos(number);
 }
 
-extern "C" float MathArctg(float number) {
+extern "C" float MathsArctg(float number) {
 	return std::atan(number);
 }
 
-extern "C" float MathExp(float number) {
+extern "C" float MathsExp(float number) {
 	return std::exp(number);
 }
 
-extern "C" float MathLn(float number) {
+extern "C" float MathsLn(float number) {
 	return std::log(number);
 }
 
-extern "C" float MathLg(float number) {
+extern "C" float MathsLg(float number) {
 	return std::log10(number);
 }
 
-extern "C" float MathModulus(float number) {
+extern "C" float MathsModulus(float number) {
 	return std::fabs(number);
 }
 
-extern "C" float MathPower(float exponent, float base) {
+extern "C" float MathsPower(float exponent, float base) {
 	return std::pow(base, exponent);
 }
 
-extern "C" float MathIntegral(float number) {
+extern "C" float MathsIntegral(float number) {
 	float integral = 0.0f;
 	std::modf(number, &integral);
 
 	return integral;
 }
 
-extern "C" float MathRandom(float maximum, float minimum) {
+extern "C" float MathsSquareRoot(float number) {
+	return std::sqrt(number);
+}
+
+extern "C" float MathsAngle(float y, float x) {
+	return std::atan2(y, x);
+}
+
+extern "C" float MathsRandom(float maximum, float minimum) {
 	if (!initialize_prng) {
 		std::srand(std::time(NULL));
 		initialize_prng = true;
 	}
 
 	return (maximum - minimum) * rand() / RAND_MAX + minimum;
-}
-
-extern "C" float MathSquareRoot(float number) {
-	return std::sqrt(number);
-}
-
-extern "C" float MathAngle(float y, float x) {
-	return std::atan2(y, x);
 }

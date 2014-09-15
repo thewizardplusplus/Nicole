@@ -1,8 +1,20 @@
+TimerStart()
+
 string LINUX = "Linux"
 string WINDOWS = "Windows"
 
 let os = GetOs()
-if os == 1 then
-    Show(LINUX $ NEW_LINE)
-if os == 0 then
-    Show(WINDOWS $ NEW_LINE)
+if os = OS_LINUX then
+	Show(LINUX $ NEW_LINE)
+if os = OS_WINDOWS then
+	Show(WINDOWS $ NEW_LINE)
+
+string SECOND_UNIT = " ns"
+
+let elapsed_time = TimerGetElapsedTimeInUs()
+Show(ToString(elapsed_time) $ SECOND_UNIT $ NEW_LINE)
+
+Exit()
+
+string DUMMY_TEXT = "dummy text"
+Show(DUMMY_TEXT $ NEW_LINE)
