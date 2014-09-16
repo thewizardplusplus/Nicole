@@ -1,10 +1,9 @@
-*~
-*.pro.user
-*.o
 /build/
 /docs/examples/*
 !/docs/examples/*.wb
 /docs/tests/*
 !/docs/tests/*.wb
+!/docs/tests/test_library/
 /docs/technique/*
 !/docs/technique/*.wb
+*.o

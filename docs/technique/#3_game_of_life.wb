@@ -1,0 +1,153 @@
+let FIELD_WIDTH = 80
+let FIELD_HEIGHT = 25
+
+let FILLING_FUNCTION = 0
+let RP_FILLING_ID = 0
+let SHOWING_FUNCTION = 1
+let RP_SHOWING_ID = 1
+let NEIGHBORHOOD_COUNTING_FUNCTION = 2
+let RP_NEIGHBORHOOD_COUNTING_ID = 2
+let UPDATING_FUNCTION = 3
+let RP_UPDATING_ID = 3
+string EMPTY_SYMBOL = " "
+string FILLED_SYMBOL = "#"
+
+let field = ArrayCreate(FIELD_WIDTH * FIELD_HEIGHT)
+
+let field_loop_return_point = RP_FILLING_ID
+let field_loop_function = FILLING_FUNCTION
+go to FIELD_LOOP
+label RP_FILLING
+
+label MAIN_LOOP
+	let field_loop_return_point = RP_SHOWING_ID
+	let field_loop_function = SHOWING_FUNCTION
+	go to FIELD_LOOP
+	label RP_SHOWING
+
+	let neighborhood = ArrayCreate(FIELD_WIDTH * FIELD_HEIGHT)
+	let field_loop_return_point = RP_NEIGHBORHOOD_COUNTING_ID
+	let field_loop_function = NEIGHBORHOOD_COUNTING_FUNCTION
+	go to FIELD_LOOP
+	label RP_NEIGHBORHOOD_COUNTING
+
+	let field_loop_return_point = RP_UPDATING_ID
+	let field_loop_function = UPDATING_FUNCTION
+	go to FIELD_LOOP
+	label RP_UPDATING
+	ArrayDelete(neighborhood)
+
+	go to MAIN_LOOP
+
+Exit()
+
+label FIELD_LOOP
+	let y = 0
+	label Y_LOOP
+		if !(y < FIELD_HEIGHT) then
+			go to END_Y_LOOP
+
+		let x = 0
+		label X_LOOP
+			if !(x < FIELD_WIDTH) then
+				go to END_X_LOOP
+
+			let index = y * FIELD_WIDTH + x
+
+			if field_loop_function = FILLING_FUNCTION then
+				go to FILLING
+			if field_loop_function = SHOWING_FUNCTION then
+				go to SHOWING
+			if field_loop_function = NEIGHBORHOOD_COUNTING_FUNCTION then
+				go to NEIGHBORHOOD_COUNTING
+			if field_loop_function = UPDATING_FUNCTION then
+				go to UPDATING
+			go to FIELD_LOOP_CONTINUE
+
+			label FILLING
+			let value = MathsIntegral(MathsRandom(0.5, 1.5))
+			ArrayItemSet(field, index, value)
+			go to FIELD_LOOP_CONTINUE
+
+			label SHOWING
+			let value = ArrayItemGet(field, index)
+			if value = FALSE then
+				Show(EMPTY_SYMBOL)
+			if value = TRUE then
+				Show(FILLED_SYMBOL)
+			if x = FIELD_WIDTH - 1 then
+				Show(NEW_LINE)
+			go to FIELD_LOOP_CONTINUE
+
+			label NEIGHBORHOOD_COUNTING
+			let y_shift = 0 - 1
+			label Y_SHIFT_LOOP
+				if y_shift > 1 then
+					go to END_Y_SHIFT_LOOP
+
+				let x_shift = 0 - 1
+				label X_SHIFT_LOOP
+					if x_shift > 1 then
+						go to END_X_SHIFT_LOOP
+
+					if x_shift = 0 & y_shift = 0 then
+						go to NEIGHBORHOOD_LOOP_CONTINUE
+
+					let new_x = x + x_shift
+					if new_x < 0 then
+						let new_x = new_x + FIELD_WIDTH
+					if new_x > FIELD_WIDTH - 1 then
+						let new_x = new_x - FIELD_WIDTH
+
+					let new_y = y + y_shift
+					if new_y < 0 then
+						let new_y = new_y + FIELD_HEIGHT
+					if new_y > FIELD_HEIGHT - 1 then
+						let new_y = new_y - FIELD_HEIGHT
+
+					let neighborhood_index = new_y * FIELD_WIDTH + new_x
+					let has = ArrayItemGet(field, neighborhood_index)
+
+					let old_number = ArrayItemGet(neighborhood, index)
+					let new_number = old_number + has
+					ArrayItemSet(neighborhood, index, new_number)
+
+					label NEIGHBORHOOD_LOOP_CONTINUE
+					let x_shift = x_shift + 1
+					go to X_SHIFT_LOOP
+					label END_X_SHIFT_LOOP
+
+				let y_shift = y_shift + 1
+				go to Y_SHIFT_LOOP
+				label END_Y_SHIFT_LOOP
+			go to FIELD_LOOP_CONTINUE
+
+			label UPDATING
+			let value = ArrayItemGet(field, index)
+			let neighborhood_number = ArrayItemGet(neighborhood, index)
+
+			let new_value = FALSE
+			if value & (neighborhood_number = 2 | neighborhood_number = 3) then
+				let new_value = TRUE
+			if !value & neighborhood_number = 3 then
+				let new_value = TRUE
+			ArrayItemSet(field, index, new_value)
+			go to FIELD_LOOP_CONTINUE
+
+			label FIELD_LOOP_CONTINUE
+			let x = x + 1
+			go to X_LOOP
+			label END_X_LOOP
+
+		let y = y + 1
+		go to Y_LOOP
+		label END_Y_LOOP
+
+	if field_loop_return_point = RP_FILLING_ID then
+		go to RP_FILLING
+	if field_loop_return_point = RP_SHOWING_ID then
+		go to RP_SHOWING
+	if field_loop_return_point = RP_NEIGHBORHOOD_COUNTING_ID then
+		go to RP_NEIGHBORHOOD_COUNTING
+	if field_loop_return_point = RP_UPDATING_ID then
+		go to RP_UPDATING
