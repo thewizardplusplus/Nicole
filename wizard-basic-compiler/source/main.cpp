@@ -282,7 +282,7 @@ void ShowByteCode(const ByteCodeModule& byte_code_module) {
 }
 
 void ProcessError(const std::string& description) {
-	ShowMessage(description, MESSAGE_ERROR);
+	ShowMessage("Error! " + description, MESSAGE_ERROR);
 	std::exit(EXIT_FAILURE);
 }
 
@@ -497,7 +497,7 @@ CommandLineArguments ProcessCommandLineArguments(
 CodeLines FileRead(const std::string& filename) {
 	std::ifstream in(filename.c_str());
 	if (!in) {
-		ProcessError("Error! Unable to open input file \"" + filename + "\".");
+		ProcessError("Unable to open input file \"" + filename + "\".");
 	}
 
 	CodeLines code_lines;
@@ -515,7 +515,7 @@ CodeLines FileRead(const std::string& filename) {
 void FileWrite(const std::string& filename, const std::string& text) {
 	std::ofstream out(filename.c_str());
 	if (!out) {
-		ProcessError("Error! Unable to open output file \"" + filename + "\".");
+		ProcessError("Unable to open output file \"" + filename + "\".");
 	}
 
 	out << text;
@@ -564,7 +564,7 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 					&& accumulator[accumulator.size() - 1] == '.'
 				) {
 					ProcessError(
-						"Error! Unfinished number on line "
+						"Unfinished number on line "
 						+ ConvertToString(line_number)
 						+ "."
 					);
@@ -593,7 +593,7 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 			accumulator += symbol;
 		} else {
 			ProcessError(
-				"Error! Unexpected symbol \""
+				"Unexpected symbol \""
 				+ symbol_as_string
 				+ "\" in expression on line "
 				+ ConvertToString(line_number)
@@ -608,7 +608,7 @@ StringList Tokenize(const std::string& string, size_t line_number) {
 			&& accumulator[accumulator.size() - 1] == '.'
 		) {
 			ProcessError(
-				"Error! Unfinished number on line "
+				"Unfinished number on line "
 				+ ConvertToString(line_number)
 				+ "."
 			);
@@ -698,8 +698,8 @@ CompileExpressionResult CompileExpression(
 			while (true) {
 				if (stack.empty()) {
 					ProcessError(
-						"Missed subprogram argument separator or opening "
-							"parenthesis on line "
+						"Missed subprogram argument separator "
+							"or opening parenthesis on line "
 						+ ConvertToString(line_number)
 						+ "."
 					);

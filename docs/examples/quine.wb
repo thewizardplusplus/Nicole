@@ -1,48 +1,34 @@
-note Quine.
+string code = "string code = \"\"\n\nlet QUOTE_CODE = 34\nlet NEW_LINE_CODE = 10\nlet INSERT_POSITION = 15\nlet N_CODE = 110\nlet SLASH_CODE = 92\n\nlet code_copy = ArrayCreate(0) $ code\nlet source_index = ArrayGetSize(code) - 1\nlabel START\n	if source_index < 0 then\n		go to END\n\n	let symbol = ArrayItemGet(code, source_index)\n	if symbol = QUOTE_CODE | symbol = NEW_LINE_CODE then\n		go to REPLACE\n	ArrayItemInsert(code_copy, INSERT_POSITION, symbol)\n	go to CONTINUE\n\n	label REPLACE\n	if symbol = QUOTE_CODE then\n		ArrayItemInsert(code_copy, INSERT_POSITION, QUOTE_CODE)\n	if symbol = NEW_LINE_CODE then\n		ArrayItemInsert(code_copy, INSERT_POSITION, N_CODE)\n	ArrayItemInsert(code_copy, INSERT_POSITION, SLASH_CODE)\n\n	label CONTINUE\n	let source_index = source_index - 1\n\n	go to START\n\nlabel END\nShow(code_copy)\n"
 
-string code = "note Quine.\n\nstring code = \"\"\n\nlet INSERT_POSITION = 28\nlet NEW_LINE_CODE =   10\nlet TAB_CODE =        9\nlet QUOTE_CODE =      34\nlet N_LETTER_CODE =   110\nlet T_LETTER_CODE =   116\nlet SLASH_CODE =      92\n\nlet code_copy = ArrayCreate(0) $ code\nlet source_index = ArrayGetSize(code) - 1\nlabel start\n\tif source_index < 0 then\n\t\tgo to end\n\n\tlet symbol = ArrayItemGet(code, source_index)\n\tif symbol = NEW_LINE_CODE then\n\t\tgo to insert_n_letter\n\tif symbol = TAB_CODE then\n\t\tgo to insert_t_letter\n\tif symbol = QUOTE_CODE then\n\t\tgo to insert_quote\n\tArrayItemInsert(code_copy, INSERT_POSITION, symbol)\n\tgo to continue\n\n\tlabel insert_n_letter\n\tArrayItemInsert(code_copy, INSERT_POSITION, N_LETTER_CODE)\n\tgo to insert_slash\n\n\tlabel insert_t_letter\n\tArrayItemInsert(code_copy, INSERT_POSITION, T_LETTER_CODE)\n\tgo to insert_slash\n\n\tlabel insert_quote\n\tArrayItemInsert(code_copy, INSERT_POSITION, QUOTE_CODE)\n\n\tlabel insert_slash\n\tArrayItemInsert(code_copy, INSERT_POSITION, SLASH_CODE)\n\n\tlabel continue\n\tlet source_index = source_index - 1\n\tgo to start\n\nlabel end\nShow(code_copy)\n"
-
-let INSERT_POSITION = 28
-let NEW_LINE_CODE =   10
-let TAB_CODE =        9
-let QUOTE_CODE =      34
-let N_LETTER_CODE =   110
-let T_LETTER_CODE =   116
-let SLASH_CODE =      92
+let QUOTE_CODE = 34
+let NEW_LINE_CODE = 10
+let INSERT_POSITION = 15
+let N_CODE = 110
+let SLASH_CODE = 92
 
 let code_copy = ArrayCreate(0) $ code
 let source_index = ArrayGetSize(code) - 1
-label start
+label START
 	if source_index < 0 then
-		go to end
+		go to END
 
 	let symbol = ArrayItemGet(code, source_index)
-	if symbol = NEW_LINE_CODE then
-		go to insert_n_letter
-	if symbol = TAB_CODE then
-		go to insert_t_letter
-	if symbol = QUOTE_CODE then
-		go to insert_quote
+	if symbol = QUOTE_CODE | symbol = NEW_LINE_CODE then
+		go to REPLACE
 	ArrayItemInsert(code_copy, INSERT_POSITION, symbol)
-	go to continue
+	go to CONTINUE
 
-	label insert_n_letter
-	ArrayItemInsert(code_copy, INSERT_POSITION, N_LETTER_CODE)
-	go to insert_slash
-
-	label insert_t_letter
-	ArrayItemInsert(code_copy, INSERT_POSITION, T_LETTER_CODE)
-	go to insert_slash
-
-	label insert_quote
-	ArrayItemInsert(code_copy, INSERT_POSITION, QUOTE_CODE)
-
-	label insert_slash
+	label REPLACE
+	if symbol = QUOTE_CODE then
+		ArrayItemInsert(code_copy, INSERT_POSITION, QUOTE_CODE)
+	if symbol = NEW_LINE_CODE then
+		ArrayItemInsert(code_copy, INSERT_POSITION, N_CODE)
 	ArrayItemInsert(code_copy, INSERT_POSITION, SLASH_CODE)
 
-	label continue
+	label CONTINUE
 	let source_index = source_index - 1
-	go to start
 
-label end
+	go to START
+
+label END
 Show(code_copy)

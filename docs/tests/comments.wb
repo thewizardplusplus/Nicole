@@ -1,0 +1,4 @@
+note Exit()
+
+string TEST_TEXT = "test text"
+Show(TEST_TEXT $ NEW_LINE)

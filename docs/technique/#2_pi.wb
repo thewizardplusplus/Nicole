@@ -1,0 +1,28 @@
+note Gauss-Legendre algorithm.
+
+let EPSILON = 0.000001
+
+let a = 1
+let b = 1 / MathsSquareRoot(2)
+let t = 1 / 4
+let p = 1
+
+label CALCULATION_LOOP
+	let new_a = (a + b) / 2
+	let new_b = MathsSquareRoot(a * b)
+	let new_t = t - p * (a - new_a) * (a - new_a)
+	let new_p = 2 * p
+
+	let a = new_a
+	let b = new_b
+	let t = new_t
+	let p = new_p
+
+	if MathsModulus(a - b) > EPSILON then
+		go to CALCULATION_LOOP
+
+let pi = (a + b) * (a + b) / (4 * t)
+
+string MESSAGE_BEGIN = "Pi = "
+string MESSAGE_END = "."
+Show(MESSAGE_BEGIN $ ToString(pi) $ MESSAGE_END $ NEW_LINE)

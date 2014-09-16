@@ -6,3 +6,5 @@
 !/docs/examples/*.wb
 /docs/tests/*
 !/docs/tests/*.wb
+/docs/technique/*
+!/docs/technique/*.wb

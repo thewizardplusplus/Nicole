@@ -28,6 +28,6 @@ extern "C" float ProcessAppPath(const char* path) {
 }
 
 extern "C" void ProcessError(const std::string& description) {
-	std::cerr << description << std::endl;
+	std::cerr << "Error! " << description << std::endl;
 	std::exit(EXIT_FAILURE);
 }
