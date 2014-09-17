@@ -1,4 +1,4 @@
-OBJECTS = file_get_contents.o
+OBJECTS = test.o
 CXXFLAGS += -std=c++03 -Wpedantic -Wall -Wextra -O2 -m32 -I../../../build/framework/headers/
 
 main: $(OBJECTS)
