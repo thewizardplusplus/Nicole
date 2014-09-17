@@ -6,8 +6,7 @@ using namespace thewizardplusplus::wizard_basic::framework::array;
 static const size_t BUFFER_SIZE = 1024;
 
 extern "C" float date(const char* format) {
-	time_t time;
-	std::time(&time);
+	time_t time = std::time(NULL);
 	std::tm* time_info = localtime(&time);
 
 	char buffer[BUFFER_SIZE];

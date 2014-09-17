@@ -1,31 +1,38 @@
-#!/bin/ruby
+#!/usr/bin/env ruby
 
 require 'optparse'
+require 'pathname'
 
-options = {}
-OptionParser.new do |option_parser|
-	#option_parser.banner = 'Usage: example.rb [options]'
-	option_parser.default_argv = [
-		'--void',
-		'void',
-		'--float',
-		'float',
-		'--string',
-		'const char*'
-	]
+def parseOptions
+	options = {:void => 'void', :float => 'float', :c_string => 'const char*'}
+	OptionParser.new do |option_parser|
+		option_parser.program_name = Pathname.new($0).basename
+		option_parser.banner =
+			"Usage: #{option_parser.program_name} [options] filename"
 
-	option_parser.on('--void NAME', 'void type name') do |void_type_name|
-		options[:void_type_name] = void_type_name
-	end
-	option_parser.on('--float NAME', 'float type name') do |float_type_name|
-		options[:float_type_name] = float_type_name
-	end
-	option_parser.on('--string NAME', 'string type name') do |string_type_name|
-		options[:string_type_name] = string_type_name
-	end
-end.parse!
+		option_parser.on('--void NAME', 'void type name') do |name|
+			options[:void] = name
+		end
+		option_parser.on('--float NAME', 'float type name') do |name|
+			options[:float] = name
+		end
+		option_parser.on('--c-string NAME', 'C string type name') do |name|
+			options[:c_string] = name
+		end
+	end.parse!
 
-p options
+	options[:filename] = ARGV.pop
+	raise "need to specify a file to process" unless options[:filename]
 
-#code = IO.read('testfile')
-#p code
+	options
+end
+
+begin
+	options = parseOptions
+	p options
+
+	#code = IO.read('testfile')
+	#p code
+rescue Exception => exception
+	puts "Error: \"#{exception.message}\"."
+end
