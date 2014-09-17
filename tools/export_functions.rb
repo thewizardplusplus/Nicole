@@ -12,8 +12,8 @@ def parseOptions
 	options = {
 		:void => '\bvoid\b',
 		:float => '\bfloat\b',
-		#:c_string => '(const?)\s+char\s*\*'
-		:c_string => '\b(const\s+)?char(\s+const)?\s*\*'
+		:c_string => '\b(const\s+)?char(\s+const)?\s*\*',
+		:indent => ''
 	}
 	OptionParser.new do |option_parser|
 		option_parser.program_name = Pathname.new($0).basename
@@ -28,6 +28,9 @@ def parseOptions
 		end
 		option_parser.on('--c-string NAME', 'C string type name') do |name|
 			options[:c_string] = testAndWrapName name
+		end
+		option_parser.on('--indent PREFIX', 'indent prefix') do |prefix|
+			options[:indent] = prefix
 		end
 	end.parse!
 
@@ -96,11 +99,17 @@ def processCode(code, options)
 	subprograms
 end
 
+def printSubprograms(subprograms, options)
+	subprograms.each do |subprogram|
+		puts options[:indent] + subprogram
+	end
+end
+
 begin
 	options = parseOptions
 	code = IO.read(options[:filename])
 	subprograms = processCode(code, options)
-	p subprograms
+	printSubprograms(subprograms, options)
 rescue Exception => exception
 	puts "Error: \"#{exception.message}\"."
 end
