@@ -1738,6 +1738,20 @@ void MakeExecutableFile(
 		output_filename = output_filename.substr(0, suffix_begin_index);
 	}
 
+	std::string input_file_path;
+	if (last_separator_index != std::string::npos) {
+		input_file_path = command_line_arguments.input_filename.substr(
+			0,
+			last_separator_index + 1
+		);
+	} else {
+		#ifdef OS_LINUX
+			input_file_path = "./";
+		#elif defined(OS_WINDOWS)
+			input_file_path = ".\\";
+		#endif
+	}
+
 	std::string command =
 		"g++ -O2 -m32 -o "
 		+ output_filename
@@ -1750,7 +1764,7 @@ void MakeExecutableFile(
 	) {
 		Library library = *i;
 		if (!library.path.empty()) {
-			command += " -L" + library.path;
+			command += " -L" + input_file_path + library.path;
 		}
 		command += " -l" + library.name;
 	}

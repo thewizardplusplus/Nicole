@@ -4,6 +4,7 @@
 /docs/tests/*
 !/docs/tests/*.wb
 !/docs/tests/test_library/
+/docs/tests/test_library/*.a
 /docs/technique/*
 !/docs/technique/*.wb
 *.o

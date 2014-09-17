@@ -1,9 +1,12 @@
 procedure puts/1
-function fmodf/2
 
 string TEST_TEXT = "test text"
 puts(c_string(TEST_TEXT))
 
-string REMAINDER = "fmodf(PI, E) (expected ~0.42331) = "
-let remainder = fmodf(E, PI)
-Show(REMAINDER $ ToString(remainder) $ NEW_LINE)
+use "linux:test_library/test"
+use "windows:test_library\\test"
+function date/1
+
+string DATE_FORMAT = "%FT%T%z"
+let formatted_current_date = date(c_string(DATE_FORMAT))
+Show(formatted_current_date $ NEW_LINE)

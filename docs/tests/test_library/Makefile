@@ -1,6 +1,8 @@
+OBJECTS = file_get_contents.o
 CXXFLAGS += -std=c++03 -Wpedantic -Wall -Wextra -O2 -m32 -I../../../build/framework/headers/
-LDFLAGS += -L../../../build/framework/libraries/ -L/usr/lib/x86_64-linux-gnu
-LDLIBS += -lwbf -lcurl
 
-main: file_get_contents.o
-	$(CXX) -O2 -m32 $(LDFLAGS) file_get_contents.o $(LDLIBS)
+main: $(OBJECTS)
+	$(AR) crs libtest.a $(OBJECTS)
+
+clean:
+	find . -name "*.o" -type f -delete
