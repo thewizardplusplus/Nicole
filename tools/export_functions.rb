@@ -29,10 +29,9 @@ end
 
 begin
 	options = parseOptions
-	p options
 
-	#code = IO.read('testfile')
-	#p code
+	code = IO.read(options[:filename])
+	p code
 rescue Exception => exception
 	puts "Error: \"#{exception.message}\"."
 end
