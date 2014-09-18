@@ -1,0 +1,156 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!DOCTYPE language SYSTEM "language.dtd">
+<language
+	name = "Wizard BASIC"
+	section = "Sources"
+	extensions = "*.wb"
+	version = "1.0"
+	author = "thewizardplusplus (thewizardplusplus@yandex.ru)"
+	license = "MIT"
+	kateversion = "3.13">
+	<highlighting>
+		<list name = "keywords">
+			<item> function </item>
+			<item> go </item>
+			<item> if </item>
+			<item> label </item>
+			<item> let </item>
+			<item> procedure </item>
+			<item> string </item>
+			<item> then </item>
+			<item> to </item>
+			<item> use </item>
+		</list>
+		<list name = "subprograms">
+			<item> ArrayDelete </item>
+			<item> ArrayItemSet </item>
+			<item> ArrayItemInsert </item>
+			<item> ArrayItemAppend </item>
+			<item> ArrayItemRemove </item>
+			<item> ArrayCreate </item>
+			<item> ToString </item>
+			<item> ToNumber </item>
+			<item> c_string </item>
+			<item> ArrayGetSize </item>
+			<item> ArrayItemGet </item>
+			<item> Show </item>
+			<item> FileClose </item>
+			<item> FileRemove </item>
+			<item> FileWrite </item>
+			<item> FileOpen </item>
+			<item> FileRead </item>
+			<item> FileReadAll </item>
+			<item> MathsSin </item>
+			<item> MathsCos </item>
+			<item> MathsTg </item>
+			<item> MathsArcsin </item>
+			<item> MathsArccos </item>
+			<item> MathsArctg </item>
+			<item> MathsExp </item>
+			<item> MathsLn </item>
+			<item> MathsLg </item>
+			<item> MathsModulus </item>
+			<item> MathsPower </item>
+			<item> MathsIntegral </item>
+			<item> MathsSquareRoot </item>
+			<item> MathsAngle </item>
+			<item> MathsRandom </item>
+			<item> TimerStart </item>
+			<item> Exit </item>
+			<item> GetOs </item>
+			<item> TimerGetElapsedTimeInUs </item>
+		</list>
+		<list name = "constants">
+			<item> FILE_OPEN_MODE_READ </item>
+			<item> FILE_OPEN_MODE_APPEND </item>
+			<item> FILE_OPEN_MODE_REWRITE </item>
+			<item> FILE_OPEN_ERROR </item>
+			<item> APP_PATH </item>
+			<item> NEW_LINE </item>
+			<item> PATH_SEPARATOR </item>
+			<item> FALSE </item>
+			<item> TRUE </item>
+			<item> PI </item>
+			<item> E </item>
+			<item> OS_LINUX </item>
+			<item> OS_WINDOWS </item>
+		</list>
+		<contexts>
+			<context
+				name = "normal-text"
+				lineEndContext = "#stay"
+				attribute = "normal-text">
+				<WordDetect
+					String = "label"
+					attribute = "keyword"
+					context = "label" />
+				<WordDetect
+					String = "go to"
+					attribute = "keyword"
+					context = "label" />
+				<keyword
+					String = "keywords"
+					attribute = "keyword"
+					context = "#stay" />
+				<keyword
+					String = "subprograms"
+					attribute = "subprogram"
+					context = "#stay" />
+				<keyword
+					String = "constants"
+					attribute = "constant"
+					context = "#stay" />
+				<Int attribute = "number" context = "#stay" />
+				<Float attribute = "number" context = "#stay" />
+				<DetectChar
+					char = "&quot;"
+					attribute = "string"
+					context = "string" />
+				<WordDetect
+					String = "note"
+					attribute = "comment"
+					context = "comment" />
+			</context>
+			<context
+				name = "label"
+				lineEndContext = "#pop"
+				attribute = "keyword">
+				<RegExpr
+					String = "\b[a-z_]\w*\b"
+					insensitive = "true"
+					attribute = "label"
+					context = "#pop" />
+			</context>
+			<context
+				name = "string"
+				lineEndContext = "#pop"
+				attribute = "string">
+				<DetectChar
+					char = "&quot;"
+					attribute = "string"
+					context = "#pop" />
+			</context>
+			<context
+				name = "comment"
+				lineEndContext = "#pop"
+				attribute = "comment">
+			</context>
+		</contexts>
+		<itemDatas>
+			<itemData name = "normal-text" defStyleNum = "dsNormal" />
+			<itemData name = "keyword" defStyleNum = "dsKeyword" />
+			<itemData name = "subprogram" defStyleNum = "dsFunction" />
+			<itemData name = "constant" defStyleNum = "dsOthers" />
+			<itemData name = "number" defStyleNum = "dsFloat" />
+			<itemData name = "string" defStyleNum = "dsString" />
+			<itemData name = "comment" defStyleNum = "dsComment" />
+			<itemData name = "label" color = "#00286e" selColor = "#8080ff" />
+		</itemDatas>
+	</highlighting>
+	<general>
+		<comments>
+			<comment name = "singleLine" start = "note" />
+		</comments>
+		<keywords casesensitive = "1" />
+	</general>
+</language>

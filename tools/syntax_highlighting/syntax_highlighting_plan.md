@@ -1,6 +1,5 @@
 # Syntax highlighting
 
-* Kate;
 * Gedit;
 * Notepad++;
 * SublimeText;
