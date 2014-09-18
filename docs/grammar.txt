@@ -19,7 +19,9 @@ string declaration = "string", identifier, "=", string, line break;
 label declaration = "label", identifier, line break;
 assignment = "let", identifier, "=", expression, line break;
 jump = "go", "to", identifier, line break;
-condition = "if", expression, "then", line break, statement, line break;
+condition =
+	"if", expression, "then", line break,
+		statement, line break;
 
 expression = disjunction;
 disjunction = conjunction, {"|", conjunction};
