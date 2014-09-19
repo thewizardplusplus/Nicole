@@ -1,0 +1,129 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+    The MIT License (MIT)
+
+    Copyright (c) 2014 thewizardplusplus <thewizardplusplus@yandex.ru>
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to
+    deal in the Software without restriction, including without limitation the
+    rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+    sell copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE SOFTWARE.
+-->
+<language
+    id = "wizard-basic"
+    _name = "Wizard BASIC"
+    _section = "Sources"
+    version = "2.0">
+    <metadata>
+        <property name = "globs" >*.wb</property>
+        <property name = "line-comment-start" >note</property>
+    </metadata>
+    <styles>
+        <style id = "keyword" _name = "Keyword" map-to = "def:keyword" />
+        <style id = "subprogram" _name = "Subprogram" map-to = "def:function" />
+        <style id = "constant" _name = "Constant" map-to = "def:constant" />
+        <style id = "comment" _name = "Comment" map-to = "def:comment" />
+        <style id = "label" _name = "Label" map-to = "def:type" />
+    </styles>
+    <definitions>
+        <context id = "wizard-basic">
+            <include>
+                <context id = "labels_statements" style-ref = "keyword">
+                    <start>\b(label|go\s+to)\b</start>
+                    <end>$</end>
+                    <include>
+                        <context id = "labels_names" style-ref = "label">
+                            <match case-sensitive = "false">\b[a-z_]\w*\b</match>
+                        </context>
+                    </include>
+                </context>
+                <context id = "keywords" style-ref = "keyword">
+                    <keyword>function</keyword>
+                    <keyword>go</keyword>
+                    <keyword>if</keyword>
+                    <keyword>label</keyword>
+                    <keyword>let</keyword>
+                    <keyword>procedure</keyword>
+                    <keyword>string</keyword>
+                    <keyword>then</keyword>
+                    <keyword>to</keyword>
+                    <keyword>use</keyword>
+                </context>
+                <context id = "subprograms" style-ref = "subprogram">
+                    <keyword>ArrayDelete</keyword>
+                    <keyword>ArraykeywordSet</keyword>
+                    <keyword>ArraykeywordInsert</keyword>
+                    <keyword>ArraykeywordAppend</keyword>
+                    <keyword>ArraykeywordRemove</keyword>
+                    <keyword>ArrayCreate</keyword>
+                    <keyword>ToString</keyword>
+                    <keyword>ToNumber</keyword>
+                    <keyword>c_string</keyword>
+                    <keyword>ArrayGetSize</keyword>
+                    <keyword>ArraykeywordGet</keyword>
+                    <keyword>Show</keyword>
+                    <keyword>FileClose</keyword>
+                    <keyword>FileRemove</keyword>
+                    <keyword>FileWrite</keyword>
+                    <keyword>FileOpen</keyword>
+                    <keyword>FileRead</keyword>
+                    <keyword>FileReadAll</keyword>
+                    <keyword>MathsSin</keyword>
+                    <keyword>MathsCos</keyword>
+                    <keyword>MathsTg</keyword>
+                    <keyword>MathsArcsin</keyword>
+                    <keyword>MathsArccos</keyword>
+                    <keyword>MathsArctg</keyword>
+                    <keyword>MathsExp</keyword>
+                    <keyword>MathsLn</keyword>
+                    <keyword>MathsLg</keyword>
+                    <keyword>MathsModulus</keyword>
+                    <keyword>MathsPower</keyword>
+                    <keyword>MathsIntegral</keyword>
+                    <keyword>MathsSquareRoot</keyword>
+                    <keyword>MathsAngle</keyword>
+                    <keyword>MathsRandom</keyword>
+                    <keyword>TimerStart</keyword>
+                    <keyword>Exit</keyword>
+                    <keyword>GetOs</keyword>
+                    <keyword>TimerGetElapsedTimeInUs</keyword>
+                </context>
+                <context id = "constants" style-ref = "constant">
+                    <keyword>FILE_OPEN_MODE_READ</keyword>
+                    <keyword>FILE_OPEN_MODE_APPEND</keyword>
+                    <keyword>FILE_OPEN_MODE_REWRITE</keyword>
+                    <keyword>FILE_OPEN_ERROR</keyword>
+                    <keyword>APP_PATH</keyword>
+                    <keyword>NEW_LINE</keyword>
+                    <keyword>PATH_SEPARATOR</keyword>
+                    <keyword>FALSE</keyword>
+                    <keyword>TRUE</keyword>
+                    <keyword>PI</keyword>
+                    <keyword>E</keyword>
+                    <keyword>OS_LINUX</keyword>
+                    <keyword>OS_WINDOWS</keyword>
+                </context>
+                <context ref = "def:decimal"/>
+                <context ref = "def:float"/>
+                <context ref = "def:string"/>
+                <context id = "comments" style-ref = "comment">
+                    <start>\bnote\b</start>
+                    <end>$</end>
+                </context>
+            </include>
+        </context>
+    </definitions>
+</language>
