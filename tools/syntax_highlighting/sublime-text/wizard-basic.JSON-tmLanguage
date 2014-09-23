@@ -1,0 +1,47 @@
+{
+	"name": "Wizard BASIC",
+	"comment": "\n\t\tCopyright (c) 2014 thewizardplusplus (thewizardplusplus@yandex.ru)\n\t\tThe MIT License (MIT)\n\t",
+	"scopeName": "source.wizard-basic",
+	"fileTypes": ["wb"],
+	"patterns": [
+		{
+			"match": "\\b(?:label|go to) ([A-Za-z_]\\w*)",
+			"name": "keyword.control.wizard-basic",
+			"captures": {
+				"1": {"name": "support.constant.wizard-basic"}
+			},
+			"comment": "Labels."
+		},
+		{
+			"match": "\\b(function|go|if|label|let|procedure|string|then|to|use)\\b",
+			"name": "keyword.control.wizard-basic",
+			"comment": "Keywords."
+		},
+		{
+			"match": "\\b(ArrayDelete|ArrayItemSet|ArrayItemInsert|ArrayItemAppend|ArrayItemRemove|ArrayCreate|ToString|ToNumber|c_string|ArrayGetSize|ArrayItemGet|Show|FileClose|FileRemove|FileWrite|FileOpen|FileRead|FileReadAll|MathsSin|MathsCos|MathsTg|MathsArcsin|MathsArccos|MathsArctg|MathsExp|MathsLn|MathsLg|MathsModulus|MathsPower|MathsIntegral|MathsSquareRoot|MathsAngle|MathsRandom|TimerStart|Exit|GetOs|TimerGetElapsedTimeInUs)\\b",
+			"name": "entity.name.function.wizard-basic",
+			"comment": "Subprograms."
+		},
+		{
+			"match": "\\b(FILE_OPEN_MODE_READ|FILE_OPEN_MODE_APPEND|FILE_OPEN_MODE_REWRITE|FILE_OPEN_ERROR|APP_PATH|NEW_LINE|PATH_SEPARATOR|FALSE|TRUE|PI|E|OS_LINUX|OS_WINDOWS)\\b",
+			"name": "constant.language.wizard-basic",
+			"comment": "Constants."
+		},
+		{
+			"match": "\\d+(\\.\\d+)?",
+			"name": "constant.numeric.wizard-basic",
+			"comment": "Numbers."
+		},
+		{
+			"match": "\"(\\\\.|[^\"])*\"",
+			"name": "string.quoted.double.wizard-basic",
+			"comment": "Strings."
+		},
+		{
+			"match": "^\\s*note\\b.*$",
+			"name": "comment.line.wizard-basic",
+			"comment": "Comments."
+		}
+	],
+	"uuid": "52b7697c-bee9-403d-9477-705920e9b388"
+}

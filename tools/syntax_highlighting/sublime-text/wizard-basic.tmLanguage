@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>comment</key>
+	<string>
+		Copyright (c) 2014 thewizardplusplus (thewizardplusplus@yandex.ru)
+		The MIT License (MIT)
+	</string>
+	<key>fileTypes</key>
+	<array>
+		<string>wb</string>
+	</array>
+	<key>name</key>
+	<string>Wizard BASIC</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>support.constant.wizard-basic</string>
+				</dict>
+			</dict>
+			<key>comment</key>
+			<string>Labels.</string>
+			<key>match</key>
+			<string>\b(?:label|go to) ([A-Za-z_]\w*)</string>
+			<key>name</key>
+			<string>keyword.control.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Keywords.</string>
+			<key>match</key>
+			<string>\b(function|go|if|label|let|procedure|string|then|to|use)\b</string>
+			<key>name</key>
+			<string>keyword.control.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Subprograms.</string>
+			<key>match</key>
+			<string>\b(ArrayDelete|ArrayItemSet|ArrayItemInsert|ArrayItemAppend|ArrayItemRemove|ArrayCreate|ToString|ToNumber|c_string|ArrayGetSize|ArrayItemGet|Show|FileClose|FileRemove|FileWrite|FileOpen|FileRead|FileReadAll|MathsSin|MathsCos|MathsTg|MathsArcsin|MathsArccos|MathsArctg|MathsExp|MathsLn|MathsLg|MathsModulus|MathsPower|MathsIntegral|MathsSquareRoot|MathsAngle|MathsRandom|TimerStart|Exit|GetOs|TimerGetElapsedTimeInUs)\b</string>
+			<key>name</key>
+			<string>entity.name.function.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Constants.</string>
+			<key>match</key>
+			<string>\b(FILE_OPEN_MODE_READ|FILE_OPEN_MODE_APPEND|FILE_OPEN_MODE_REWRITE|FILE_OPEN_ERROR|APP_PATH|NEW_LINE|PATH_SEPARATOR|FALSE|TRUE|PI|E|OS_LINUX|OS_WINDOWS)\b</string>
+			<key>name</key>
+			<string>constant.language.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Numbers.</string>
+			<key>match</key>
+			<string>\d+(\.\d+)?</string>
+			<key>name</key>
+			<string>constant.numeric.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Strings.</string>
+			<key>match</key>
+			<string>"(\\.|[^"])*"</string>
+			<key>name</key>
+			<string>string.quoted.double.wizard-basic</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Comments.</string>
+			<key>match</key>
+			<string>^\s*note\b.*$</string>
+			<key>name</key>
+			<string>comment.line.wizard-basic</string>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.wizard-basic</string>
+	<key>uuid</key>
+	<string>52b7697c-bee9-403d-9477-705920e9b388</string>
+</dict>
+</plist>
