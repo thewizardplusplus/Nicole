@@ -1,0 +1,11 @@
+{
+	"main": "./index.coffee",
+	"name": "wizard-basic",
+	"version": "1.0",
+	"description": "Syntax highlighting for Wizard BASIC.",
+	"author": {
+		"name" : "thewizardplusplus",
+		"email" : "thewizardplusplus@yandex.ru"
+	},
+	"license": "MIT"
+}
