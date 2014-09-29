@@ -27,7 +27,7 @@
 			<key>comment</key>
 			<string>Labels.</string>
 			<key>match</key>
-			<string>\b(?:label|go to) ([A-Za-z_]\w*)</string>
+			<string>\b(?:label|go to) ([A-Za-z_]\w*)\b</string>
 			<key>name</key>
 			<string>keyword.control.wizard-basic</string>
 		</dict>

@@ -5,7 +5,7 @@
 	"fileTypes": ["wb"],
 	"patterns": [
 		{
-			"match": "\\b(?:label|go to) ([A-Za-z_]\\w*)",
+			"match": "\\b(?:label|go to) ([A-Za-z_]\\w*)\\b",
 			"name": "keyword.control.wizard-basic",
 			"captures": {
 				"1": {"name": "support.constant.wizard-basic"}
