@@ -1,3 +1,0 @@
-# Syntax highlighting
-
-* Notepad++;

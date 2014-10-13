@@ -12,8 +12,8 @@ using namespace thewizardplusplus::wizard_basic::framework::system;
 #ifdef OS_LINUX
 	static timeval start_time = {0};
 #elif defined(OS_WINDOWS)
-	static LARGE_INTEGER frequency = {0};
-	static LARGE_INTEGER start_time = {0};
+	static LARGE_INTEGER frequency = {0UL, 0L};
+	static LARGE_INTEGER start_time = {0UL, 0L};
 #endif
 
 extern "C" float GetOs(void) {

@@ -624,7 +624,11 @@ std::string CorrectSubprogramName(const std::string& name) {
 	#ifdef OS_LINUX
 		return name;
 	#elif defined(OS_WINDOWS)
-		return "_" + name;
+		if (name != "c_string") {
+			return "_" + name;
+		} else {
+			return name;
+		}
 	#endif
 }
 
@@ -1142,9 +1146,8 @@ ByteCodeModule Compile(
 			std::string arguments_number = StringTrim(
 				code_line.substr(separator_index + 1)
 			);
-			byte_code_module.procedures[identifier] = ConvertFromString<size_t>(
-				arguments_number
-			);
+			byte_code_module.procedures[CorrectSubprogramName(identifier)] =
+				ConvertFromString<size_t>(arguments_number);
 		} else if (code_line.substr(0, 9) == "function ") {
 			size_t separator_index = code_line.find('/');
 			if (separator_index == std::string::npos) {
@@ -1171,9 +1174,8 @@ ByteCodeModule Compile(
 			std::string arguments_number = StringTrim(
 				code_line.substr(separator_index + 1)
 			);
-			byte_code_module.functions[identifier] = ConvertFromString<size_t>(
-				arguments_number
-			);
+			byte_code_module.functions[CorrectSubprogramName(identifier)] =
+				ConvertFromString<size_t>(arguments_number);
 		} else if (code_line.substr(0, 7) == "string ") {
 			size_t separator_index = code_line.find('=');
 			if (separator_index == std::string::npos) {
@@ -1771,13 +1773,7 @@ void MakeExecutableFile(
 	command +=
 		" -L"
 		+ command_line_arguments.base_path
-		+ "../framework"
-		#ifdef OS_LINUX
-			+ "/"
-		#elif defined(OS_WINDOWS)
-			+ "\\"
-		#endif
-		+ "libraries -lwbf";
+		+ "../framework/libraries/wizard_basic_framework/ -lwbf";
 	ShowMessage(command);
 
 	int status_code = std::system(command.c_str());

@@ -1,4 +1,4 @@
-#include <array/array.h>
+#include <wizard_basic_framework/array/array.h>
 #include <ctime>
 
 using namespace thewizardplusplus::wizard_basic::framework::array;
